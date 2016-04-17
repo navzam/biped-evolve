@@ -65,7 +65,7 @@ int main(int argc, char **argv)
   fn.step = &simLoop;
   fn.command = NULL;
   fn.stop = NULL;
-  fn.path_to_textures = "textures";
+  fn.path_to_textures = "../textures";
   
   // Init world
   dInitODE();
