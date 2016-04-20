@@ -19,8 +19,8 @@ static bool biped=false;
 CmdLine cmd("Maze evolution", ' ', "0.1");
 
 int main(int argc, char **argv) {
-//HeapProfilerStart("profout");
- // mtrace(); 
+  //HeapProfilerStart("profout");
+  // mtrace(); 
   ValueArg<float> grav("","gravity","Gravity setting",false,1.0,"float");
   cmd.add(grav);
 
@@ -132,11 +132,11 @@ int main(int argc, char **argv) {
 
   //***********RANDOM SETUP***************//
   /* Seed the random-number generator with current time so that
-      the numbers will be different every time we run.    */
+  the numbers will be different every time we run.    */
   srand( (unsigned)time( NULL )  + getpid());
  
   if(rng_seed.getValue()!=-1)
-	srand((unsigned)rng_seed.getValue());
+    srand((unsigned)rng_seed.getValue());
 
   strcpy(settingsname,settings.getValue().c_str());
   strcpy(mazename,maze.getValue().c_str());
@@ -149,15 +149,15 @@ int main(int argc, char **argv) {
 
   NEAT::mo_speciation=mo_speciation.getValue();
   if(!NEAT::mo_speciation) {
-   cout << "speciation off" << endl;
-   NEAT::speciation=mo_speciation.getValue();
+    cout << "speciation off" << endl;
+    NEAT::speciation=mo_speciation.getValue();
   }
 
   if(local_switch.getValue()) 
-   NEAT::local_competition=true;
+    NEAT::local_competition=true;
  
   if(multiobj_switch.getValue())
-   NEAT::multiobjective=true;
+    NEAT::multiobjective=true;
   param = extra_param.getValue();
   cout<<"loaded"<<endl;
 
@@ -166,7 +166,7 @@ int main(int argc, char **argv) {
   cout << "Generations: " << generations << endl; 
   set_age_objective(age_objective.getValue()); 
   if(age_objective.getValue() || alpsmode.getValue()) {
-   NEAT::fresh_genetic_prob=0.05;
+    NEAT::fresh_genetic_prob=0.05;
   }
   set_evaluate(evaluateSwitch.getValue());
   set_extinction(extinction.getValue());
@@ -191,52 +191,52 @@ int main(int argc, char **argv) {
   cout << "Minimal criteria engaged? " << mcSwitch.getValue() << endl;
   set_minimal_criteria(mcSwitch.getValue());
 
-if(biped_switch.getValue()) biped=true;
+  if(biped_switch.getValue()) biped=true;
 
-/*
-long long netindex_val=netindex.getValue(); 
-enumerate_behaviors(mazename,netindex_val,filename,param);
-return 0;
-*/
+  /*
+  long long netindex_val=netindex.getValue(); 
+  enumerate_behaviors(mazename,netindex_val,filename,param);
+  return 0;
+  */
   
- set_constraint_switch(constraintSwitch.getValue());
+  set_constraint_switch(constraintSwitch.getValue());
 
- p = classifier_generational(filename,mazename,param,startgenes,generations,noveltySwitch.getValue());
- exit(0);
+  p = classifier_generational(filename,mazename,param,startgenes,generations,noveltySwitch.getValue());
+  exit(0);
 
-if(!generationalSwitch.getValue())
-{
-cout << "NONGENERATIONAL" << endl;
- if(!biped) {
-  if(passive_switch.getValue()) 
-      p = maze_passive(filename,mazename,param,startgenes,noveltySwitch.getValue());
-  else	
+  if(!generationalSwitch.getValue())
+  {
+    cout << "NONGENERATIONAL" << endl;
+    if(!biped) {
+      if(passive_switch.getValue()) 
+        p = maze_passive(filename,mazename,param,startgenes,noveltySwitch.getValue());
+      else	
 
-  if(!noveltySwitch.getValue())
-      p = maze_novelty_realtime(filename,mazename,param,startgenes,false);
+        if(!noveltySwitch.getValue())
+          p = maze_novelty_realtime(filename,mazename,param,startgenes,false);
+      else
+        p = maze_novelty_realtime(filename,mazename,param,startgenes,true);
+    } else {
+      if(!noveltySwitch.getValue())
+        p = biped_novelty_realtime(filename,mazename,param,startgenes,false);
+      else
+        p = biped_novelty_realtime(filename,mazename,param,startgenes,true);
+    }
+  }
+  else if(alpsmode.getValue()) {
+    if(!biped)
+      maze_alps(filename,mazename,param,startgenes,generations,noveltySwitch.getValue());
+    else
+      biped_alps(filename,startgenes,50,noveltySwitch.getValue());
+  }
   else
-      p = maze_novelty_realtime(filename,mazename,param,startgenes,true);
- } else {
-  if(!noveltySwitch.getValue())
-      p = biped_novelty_realtime(filename,mazename,param,startgenes,false);
-  else
-      p = biped_novelty_realtime(filename,mazename,param,startgenes,true);
- }
-}
-else if(alpsmode.getValue()) {
-if(!biped)
- maze_alps(filename,mazename,param,startgenes,generations,noveltySwitch.getValue());
-else
- biped_alps(filename,startgenes,50,noveltySwitch.getValue());
-}
-else
-{
- if(!biped) 
- p = maze_generational(filename,mazename,param,startgenes,generations,noveltySwitch.getValue());
- else
- p = biped_generational(filename,startgenes,generations,noveltySwitch.getValue());
-}
-//HeapProfilerStop();
+  {
+    if(!biped) 
+      p = maze_generational(filename,mazename,param,startgenes,generations,noveltySwitch.getValue());
+    else
+      p = biped_generational(filename,startgenes,generations,noveltySwitch.getValue());
+  }
+  //HeapProfilerStop();
 
   return(0);
  

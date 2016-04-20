@@ -4,32 +4,32 @@
 #include "biped.h"
 
 class bipedsim {
- public:
+public:
 
   static void seed(int sd) {
-  srand ( sd );
- }
+    srand ( sd );
+  }
 
- static void random_seed() {
-  srand ( time(NULL) );
- }
+  static void random_seed() {
+    srand ( time(NULL) );
+  }
 
   Genome *g;
   Organism *o;
   noveltyitem* nov_item;
   bool rendered;
   bipedsim() {
-	g=NULL;
-	o=NULL;
-	nov_item=NULL;
-	rendered=false;
+    g=NULL;
+    o=NULL;
+    nov_item=NULL;
+    rendered=false;
   }
   int complexity() {
-   return g->genes.size();
+    return g->genes.size();
   }
 
   double distance(bipedsim* other) {
-   return g->compatibility(other->g);
+    return g->compatibility(other->g);
   }
 
   bipedsim* copy() {
@@ -39,53 +39,53 @@ class bipedsim {
   }
  
   void save(const char *fname) {
-   g->print_to_filename(fname);
+    g->print_to_filename(fname);
   }
 
   void load_new(const char *fname) {
-   g = Genome::new_Genome_load(fname);
+    g = Genome::new_Genome_load(fname);
   }
 
   static void initmaze(const char* mazefile) {
-   initialize_biped(mazefile);
+    initialize_biped(mazefile);
   }
 
   void init_rand() {
-	g=new Genome(2,6,0,0);
+    g=new Genome(2,6,0,0);
   }
 
   void make_random() {
-         int new_nodes = randint(0,6);
-         int new_links = randint(0,10);
+    int new_nodes = randint(0,6);
+    int new_links = randint(0,10);
  
- 	std::vector<Innovation*> innovs;
- 	//todo:make these global if you want to use recombination
-        int curnode_id=100;
-        double curinnov=1000.0;
-	init_rand();
-         for(int k=0;k<new_nodes;k++)       
-		 g->mutate_add_node(innovs,curnode_id,curinnov);
-         for(int k=0;k<new_links;k++) {
-				Network* net_analogue=g->genesis(0);
-				g->mutate_add_link(innovs,curinnov,NEAT::newlink_tries); 
-				delete net_analogue;
- 	}
-	g->mutate_link_weights(2.0,1.0,COLDGAUSSIAN);
+    std::vector<Innovation*> innovs;
+    //todo:make these global if you want to use recombination
+    int curnode_id=100;
+    double curinnov=1000.0;
+    init_rand();
+    for(int k=0;k<new_nodes;k++)       
+      g->mutate_add_node(innovs,curnode_id,curinnov);
+    for(int k=0;k<new_links;k++) {
+      Network* net_analogue=g->genesis(0);
+      g->mutate_add_link(innovs,curinnov,NEAT::newlink_tries); 
+      delete net_analogue;
+    }
+    g->mutate_link_weights(2.0,1.0,COLDGAUSSIAN);
   }
 
   void mutate() {
-	mutate_genome(g,true);
+    mutate_genome(g,true);
   }
  
   void map() {
-   o=new Organism(0.0,g,0);
-   nov_item = biped_evaluate(o);
+    o=new Organism(0.0,g,0);
+    nov_item = biped_evaluate(o);
  
-   rendered=true;
+    rendered=true;
   }
 
   bool isvalid() { 
-   return true; 
+    return true; 
   }
 
   void clear() { return; }
@@ -103,12 +103,12 @@ class bipedsim {
   } 
 
   ~bipedsim() {
-  if(g) {
-   if(o) delete o;
-   else delete g;
-  }
-  if(nov_item)
-	delete nov_item;
+    if(g) {
+      if(o) delete o;
+      else delete g;
+    }
+    if(nov_item)
+      delete nov_item;
   } 
 };
 
@@ -116,13 +116,13 @@ class bipedsim {
 class feature_detector {
 public:
 static float scale(float x,float min,float max) {
- return (x-min)/(max-min);
+return (x-min)/(max-min);
 }
 static float scalex(float x,mazenav* mn) {
- return scale(x,mn->nov_item->minx,mn->nov_item->maxx);
+return scale(x,mn->nov_item->minx,mn->nov_item->maxx);
 }
 static float scaley(float x,mazenav* mn) {
- return scale(x,mn->nov_item->miny,mn->nov_item->maxy);
+return scale(x,mn->nov_item->miny,mn->nov_item->maxy);
 }
 static float endx(mazenav* mn) { return scalex(mn->nov_item->end_x,mn); }
 static float endy(mazenav* mn) { return scaley(mn->nov_item->end_y,mn); }
@@ -130,19 +130,19 @@ static float midx(mazenav* mn) { return scalex(mn->nov_item->mid_x,mn); }
 static float midy(mazenav* mn) { return scaley(mn->nov_item->mid_y,mn); }
 
 static float state_entropy(mazenav* mn) {
- return mn->nov_item->path_entropy; 
+return mn->nov_item->path_entropy; 
 }
 
 static float end_goal(mazenav* mn) {
- return mn->nov_item->end_goal_dist / mn->nov_item->max_dist;
+return mn->nov_item->end_goal_dist / mn->nov_item->max_dist;
 }
 
 static float start_dist(mazenav* mn) {
- return mn->nov_item->end_start_dist / mn->nov_item->max_dist;
+return mn->nov_item->end_start_dist / mn->nov_item->max_dist;
 }
 
 static float closest_goal(mazenav* mn) {
- return mn->nov_item->closest_goal_dist / mn->nov_item->max_dist;
+return mn->nov_item->closest_goal_dist / mn->nov_item->max_dist;
 }
 
 static float spd(mazenav* mn) { float s= mn->nov_item->tot_dist/mn->nov_item->timesteps/1.0; 
@@ -159,7 +159,7 @@ static float coll(mazenav* mn) {
 
 float c= ((float)mn->nov_item->collisions) / 40.0 + 0.5;
 if(mn->nov_item->collisions==0)
- c=0.0;
+c=0.0;
 
 if(c>1.0) return 1.0;
 return c;
