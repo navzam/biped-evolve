@@ -1,4 +1,4 @@
-#include "classifier/read_data.h"
+#include "read_data.h"
 #include "experiments.h"
 #include "noveltyset.h"
 
@@ -21,7 +21,7 @@
 #include "population.h"
 #include "population_state.h"
 #include "alps.h"
-#include "modularity/modularity.hpp"
+//#include "modularity/modularity.hpp"
 
 static Environment* env;
 static vector<vector<float> > classifier_train_data;
@@ -35,9 +35,9 @@ static vector<float> best_fits;
 plot front_plot;
 plot fitness_plot;
 plot behavior_plot;
-void modularity(Organism* org,char* fn);
+//void modularity(Organism* org,char* fn);
 
- double modularity_score(Genome* start_genome) {
+ /*double modularity_score(Genome* start_genome) {
     Network* test_net=start_genome->genesis(0);
     Graph* g=test_net->to_graph();    
     std::vector<std::set<Graph::vertex_descriptor> > mods;
@@ -46,7 +46,7 @@ void modularity(Organism* org,char* fn);
     return modularity;
     delete test_net;
     delete g;
-  }
+  }*/
 void evolvability(Organism* org,char* fn,int *a=NULL,double* b=NULL,bool recall=false);
 using namespace std;
 enum novelty_measure_type { novelty_fitness, novelty_sample, novelty_accum, novelty_sample_free };
@@ -312,7 +312,7 @@ class passive_niche {
 	bool random;
         float minx,miny,maxx,maxy;
 	
-        void calc_modularity(char*fn) {
+        /*void calc_modularity(char*fn) {
 	    for(int i=0;i<nc;i++) {
 		cout << "modularity niche " << i << endl;
 		for(int j=0;j<5;j++) {	
@@ -321,7 +321,7 @@ class passive_niche {
 	            modularity(org,fn);
 		}
 	    }
- 	}	
+ 	}*/	
         void calc_evolvability(char*fn) {
 	    for(int i=0;i<nc;i++) {
 		cout << "evolvability niche " << i << endl;
@@ -446,7 +446,7 @@ class passive_niche {
         sprintf(fn,"%s_evolvability%d.dat",output_dir,e/upcnt);
 	//		calc_evolvability(fn);
         sprintf(fn,"%s_modularity%d.dat",output_dir,e/upcnt);
-			calc_modularity(fn);
+			//calc_modularity(fn);
 		}
         	//}
           }
@@ -615,7 +615,7 @@ Population *maze_novelty_realtime(char* outputdir,const char* mazefile,int par,c
             double evol=0.0;
             //evolvability(pop->organisms[0],"dummyfile",&dist,&evol,true);
             //cout << endl << dist << " " << evol << endl;
-            cout << "MOD:" <<modularity_score(pop->organisms[0]->gnome) << endl;
+            //cout << "MOD:" <<modularity_score(pop->organisms[0]->gnome) << endl;
             return 0;
         }
 
@@ -728,7 +728,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
             sprintf(fn,"%s_modularity%d.dat",output_dir,offspring_count/evolveupdate);
             for (curorg = (pop->organisms).begin(); curorg != pop->organisms.end(); ++curorg) {
                 //evolvability(*curorg,fn);
-		modularity(*curorg,fn2);
+		//modularity(*curorg,fn2);
             }
         }
 
@@ -947,7 +947,7 @@ mx=fit; b=(*curorg); }
             {
                 cout << "solution found" << endl;
                 //evolvability(new_org,sol_evo_fn);
-                modularity(new_org,sol_mod_fn);
+                //modularity(new_org,sol_mod_fn);
             }
         }
         
@@ -1327,7 +1327,7 @@ void mutate_genome(Genome* new_genome,bool traits)
     return;
 }
 
-void modularity(Organism* org,char* fn) {
+/*void modularity(Organism* org,char* fn) {
     bool solution=false;
     fstream file;
     file.open(fn,ios::app|ios::out);
@@ -1358,7 +1358,7 @@ void modularity(Organism* org,char* fn) {
     file << mod << " " << ox << " " << oy << " " << nodes << " " <<connections << " " << fit << " " << solution << endl;
     file.close();
     return;
-}
+}*/
 #define MUTATIONS 200
 void evolvability(Organism* org,char* fn,int* di,double* ev,bool recall) {
     bool solution=false;
