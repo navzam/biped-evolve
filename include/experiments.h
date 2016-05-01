@@ -34,11 +34,9 @@ void set_aoi(bool val);
 void set_nov_measure(string m);
 void set_fit_measure(string m);
 
-bool set_no_collision(bool no); 
 bool set_reach_onepoint(bool ro);
 void set_minimal_criteria(bool mc);
 void set_samples(int s);
-void set_timesteps(int s);
 void set_seed(string s);
 void set_goal_attract(bool s);
 //generational maze experiments
