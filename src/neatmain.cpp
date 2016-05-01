@@ -98,9 +98,6 @@ int main(int argc, char **argv) {
   ValueArg<int> num_samples("","samples","Num Samples",false,1,"int");
   cmd.add(num_samples);
 
-  ValueArg<int> time_steps("","timesteps","Num Timesteps",false,400,"int");
-  cmd.add(time_steps);
-
   ValueArg<int> generation_arg("","gens","Num generations",false,1000,"int");
   cmd.add(generation_arg);
 
@@ -162,8 +159,6 @@ int main(int argc, char **argv) {
   set_no_collision(nocollide.getValue());
   set_reach_onepoint(reachone.getValue());
   set_random_replace(remove_random.getValue());
-  cout << "Timesteps: " << time_steps.getValue() << endl;
-  set_timesteps(time_steps.getValue());
 
   cout << "Num Samples: " << num_samples.getValue() << endl;
   set_samples(num_samples.getValue());

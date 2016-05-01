@@ -69,7 +69,6 @@ static int change_extinction_length=5;
 static int change_goal_length=5;
 
 static int number_of_samples = 1;
-static int simulated_timesteps = 400;
 bool seed_mode = false;
 char seed_name[100]="";
 bool minimal_criteria=false;
@@ -111,11 +110,6 @@ void set_goal_attract(bool ga)
 void set_samples(int s)
 {
   number_of_samples=s;
-}
-
-void set_timesteps(int s)
-{
-  simulated_timesteps=s;
 }
 
 void set_seed(string s)
