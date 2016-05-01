@@ -475,8 +475,7 @@ int biped_novelty_realtime_loop(Population *pop,bool novelty) {
 
   //Now create offspring one at a time, testing each offspring,
   // and replacing the worst with the new offspring if its better
-  for
-    (offspring_count=0; offspring_count<NEAT::pop_size*2001; offspring_count++)
+  for(offspring_count=0; offspring_count<NEAT::pop_size*2001; offspring_count++)
   {
     //fix compat_threshold, so no speciation...
     //NEAT::compat_threshold = 1000000.0;
@@ -520,557 +519,558 @@ int biped_novelty_realtime_loop(Population *pop,bool novelty) {
       for (curorg = (pop->organisms).begin(); curorg != pop->organisms.end(); ++curorg) {
         tot+=(*curorg)->noveltypoint->fitness;
         if( (*curorg)->noveltypoint->fitness > mx) {
-          mx=(*curorg)->noveltypoint->fitness; b=(*curorg); }
-        } 
-        cout << "GEN" << offspring_count/NEAT::pop_size << " " << tot << " " << mx <<  endl;
-
-        //evolvability_biped(b,"dummy");
-        char fn[100];
-        sprintf(fn,"%sdist%d",output_dir,offspring_count/NEAT::pop_size);
-        if (NEAT::printdist)
-          pop->print_distribution(fn);
-      }
-
-      //write out current generation and fittest individuals
-      if ( offspring_count % (NEAT::pop_size*NEAT::print_every) == 0 )
-      {
-        cout << offspring_count << endl;
-        char fname[100];
-        sprintf(fname,"%sarchive.dat",output_dir);
-        archive.Serialize(fname);
-
-        sprintf(fname,"%sfittest_%d",output_dir,offspring_count/NEAT::pop_size);
-        archive.serialize_fittest(fname);
-
-        sprintf(fname,"%sgen_%d",output_dir,offspring_count/NEAT::pop_size);
-        pop->print_to_file_by_species(fname);
-
-
-        sprintf(fname,"%srecord.dat",output_dir);
-        Record.serialize(fname);
-      }
-
-      //Every pop_size reproductions, adjust the compat_thresh to better match the num_species_targer
-      //and reassign the population to new species
-      if (offspring_count % compat_adjust_frequency == 0) {
-        count++;
-#ifdef DEBUG_OUTPUT
-        cout << "Adjusting..." << endl;
-#endif
-        if (novelty) {
-          //update fittest individual list
-          archive.update_fittest(pop);
-          //refresh generation's novelty scores
-          archive.evaluate_population(pop,true);
+          mx=(*curorg)->noveltypoint->fitness; b=(*curorg);
         }
-        int num_species = pop->species.size();
-        double compat_mod=0.1;  //Modify compat thresh to control speciation
-        // This tinkers with the compatibility threshold
-        if (num_species < num_species_target) {
-          NEAT::compat_threshold -= compat_mod;
-        }
-        else if (num_species > num_species_target)
-          NEAT::compat_threshold += compat_mod;
+      } 
+      cout << "GEN" << offspring_count/NEAT::pop_size << " " << tot << " " << mx <<  endl;
 
-        if (NEAT::compat_threshold < 0.3)
-          NEAT::compat_threshold = 0.3;
-#ifdef DEBUG_OUTPUT
-        cout<<"compat_thresh = "<<NEAT::compat_threshold<<endl;
-#endif
-
-        //Go through entire population, reassigning organisms to new species
-        for (curorg = (pop->organisms).begin(); curorg != pop->organisms.end(); ++curorg) {
-          pop->reassign_species(*curorg);
-        }
-      }
-
-
-      //For printing only
-#ifdef DEBUG_OUTPUT
-      for (curspec=(pop->species).begin(); curspec!=(pop->species).end(); curspec++) {
-        cout<<"Species "<<(*curspec)->id<<" size"<<(*curspec)->organisms.size()<<" average= "<<(*curspec)->average_est<<endl;
-      }
-
-      cout<<"Pop size: "<<pop->organisms.size()<<endl;
-#endif
-
-      //Here we call two rtNEAT calls:
-      //1) choose_parent_species() decides which species should produce the next offspring
-      //2) reproduce_one(...) creates a single offspring fromt the chosen species
-      new_org=(pop->choose_parent_species())->reproduce_one(offspring_count,pop,pop->species);
-
-      //Now we evaluate the new individual
-      //Note that in a true real-time simulation, evaluation would be happening to all individuals at all times.
-      //That is, this call would not appear here in a true online simulation.
-#ifdef DEBUG_OUTPUT
-      cout<<"Evaluating new baby: "<<endl;
-#endif
-
-      /*	data_record* newrec=new data_record();
-      newrec->indiv_number=indiv_counter;
-      //evaluate individual, get novelty point
-      new_org->noveltypoint = maze_novelty_map(new_org,newrec);
-      new_org->noveltypoint->indiv_number = indiv_counter;
-      new_org->fitness=new_org->noveltypoint->fitness;
-      */
-      data_record* newrec=new_org->datarec;
-      //calculate novelty of new individual
-      if (novelty) {
-        archive.evaluate_individual(new_org,pop->organisms);
-        //production of novelty tracking...
-        int looking_for = new_org->gnome->parent_id;
-        for (curorg = (pop->organisms).begin(); curorg != pop->organisms.end(); ++curorg) {
-          if((*curorg)->gnome->genome_id==looking_for) {
-            (*curorg)->gnome->production+=new_org->noveltypoint->novelty;
-            (*curorg)->gnome->production_count++;
-            //cout << "Parent " << looking_for << " found...parent avg prod: " << (*curorg)->gnome->production/(*curorg)->gnome->production_count << endl;
-          }
-        }
-        
-        //newrec->ToRec[5] = archive.get_threshold();
-        newrec->ToRec[6] = archive.get_set_size();
-        newrec->ToRec[RECSIZE-2] = new_org->noveltypoint->novelty;
-      }
-      if ( !new_org->noveltypoint->viable && minimal_criteria)
-      {
-        new_org->fitness = SNUM/1000.0;
-        //new_org->novelty = 0.00000001;
-        //reset behavioral characterization
-        new_org->noveltypoint->reset_behavior();
-        cout << "fail" << endl;
-        //  cout << " :( " << endl;
-      }
-      else
-      {
-        // cout << ":)" << new_org->noveltypoint->indiv_number << endl;
-      }
-      //add record of new indivdual to storage
-      //Record.add_new(newrec);
-      indiv_counter++;
-
-      //update fittest list
-      archive.update_fittest(new_org);
-#ifdef DEBUG_OUTPUT
-      cout << "Fitness: " << new_org->fitness << endl;
-      cout << "Novelty: " << new_org->noveltypoint->novelty << endl;
-      cout << "RFit: " << new_org->noveltypoint->fitness << endl;
-#endif
-
-      //Now we reestimate the baby's species' fitness
-      new_org->species->estimate_average();
-
-      //Remove the worst organism
-      //if(rand_repl || fitness_measure ==fitness_rnd)
-      // pop->remove_random();
-      //else
-        
-      pop->remove_worst();
-      /*
-      if(randfloat()<0.99)
-      pop->remove_worst();
-      else 
-      pop->remove_old();
-      */
+      //evolvability_biped(b,"dummy");
+      char fn[100];
+      sprintf(fn,"%sdist%d",output_dir,offspring_count/NEAT::pop_size);
+      if (NEAT::printdist)
+        pop->print_distribution(fn);
     }
 
-    //write out run information, archive, and final generation
-    cout << "COMPLETED...";
-    char filename[100];
-    sprintf(filename,"%srecord.dat",output_dir);
-    char fname[100];
-    sprintf(fname,"%srtarchive.dat",output_dir);
-    archive.Serialize(fname);
-    //Record.serialize(filename);
+    //write out current generation and fittest individuals
+    if ( offspring_count % (NEAT::pop_size*NEAT::print_every) == 0 )
+    {
+      cout << offspring_count << endl;
+      char fname[100];
+      sprintf(fname,"%sarchive.dat",output_dir);
+      archive.Serialize(fname);
 
-    sprintf(fname,"%sfittest_final",output_dir);
-    archive.serialize_fittest(fname);
+      sprintf(fname,"%sfittest_%d",output_dir,offspring_count/NEAT::pop_size);
+      archive.serialize_fittest(fname);
 
-    sprintf(fname,"%srtgen_final",output_dir);
-    pop->print_to_file_by_species(fname);
-    delete pop;
-    exit(0);
-    return 0;
+      sprintf(fname,"%sgen_%d",output_dir,offspring_count/NEAT::pop_size);
+      pop->print_to_file_by_species(fname);
+
+
+      sprintf(fname,"%srecord.dat",output_dir);
+      Record.serialize(fname);
+    }
+
+    //Every pop_size reproductions, adjust the compat_thresh to better match the num_species_targer
+    //and reassign the population to new species
+    if (offspring_count % compat_adjust_frequency == 0) {
+      count++;
+#ifdef DEBUG_OUTPUT
+      cout << "Adjusting..." << endl;
+#endif
+      if (novelty) {
+        //update fittest individual list
+        archive.update_fittest(pop);
+        //refresh generation's novelty scores
+        archive.evaluate_population(pop,true);
+      }
+      int num_species = pop->species.size();
+      double compat_mod=0.1;  //Modify compat thresh to control speciation
+      // This tinkers with the compatibility threshold
+      if (num_species < num_species_target) {
+        NEAT::compat_threshold -= compat_mod;
+      }
+      else if (num_species > num_species_target)
+        NEAT::compat_threshold += compat_mod;
+
+      if (NEAT::compat_threshold < 0.3)
+        NEAT::compat_threshold = 0.3;
+#ifdef DEBUG_OUTPUT
+      cout<<"compat_thresh = "<<NEAT::compat_threshold<<endl;
+#endif
+
+      //Go through entire population, reassigning organisms to new species
+      for (curorg = (pop->organisms).begin(); curorg != pop->organisms.end(); ++curorg) {
+        pop->reassign_species(*curorg);
+      }
+    }
+
+
+    //For printing only
+#ifdef DEBUG_OUTPUT
+    for (curspec=(pop->species).begin(); curspec!=(pop->species).end(); curspec++) {
+      cout<<"Species "<<(*curspec)->id<<" size"<<(*curspec)->organisms.size()<<" average= "<<(*curspec)->average_est<<endl;
+    }
+
+    cout<<"Pop size: "<<pop->organisms.size()<<endl;
+#endif
+
+    //Here we call two rtNEAT calls:
+    //1) choose_parent_species() decides which species should produce the next offspring
+    //2) reproduce_one(...) creates a single offspring fromt the chosen species
+    new_org=(pop->choose_parent_species())->reproduce_one(offspring_count,pop,pop->species);
+
+    //Now we evaluate the new individual
+    //Note that in a true real-time simulation, evaluation would be happening to all individuals at all times.
+    //That is, this call would not appear here in a true online simulation.
+#ifdef DEBUG_OUTPUT
+    cout<<"Evaluating new baby: "<<endl;
+#endif
+
+    /*	data_record* newrec=new data_record();
+    newrec->indiv_number=indiv_counter;
+    //evaluate individual, get novelty point
+    new_org->noveltypoint = maze_novelty_map(new_org,newrec);
+    new_org->noveltypoint->indiv_number = indiv_counter;
+    new_org->fitness=new_org->noveltypoint->fitness;
+    */
+    data_record* newrec=new_org->datarec;
+    //calculate novelty of new individual
+    if (novelty) {
+      archive.evaluate_individual(new_org,pop->organisms);
+      //production of novelty tracking...
+      int looking_for = new_org->gnome->parent_id;
+      for (curorg = (pop->organisms).begin(); curorg != pop->organisms.end(); ++curorg) {
+        if((*curorg)->gnome->genome_id==looking_for) {
+          (*curorg)->gnome->production+=new_org->noveltypoint->novelty;
+          (*curorg)->gnome->production_count++;
+          //cout << "Parent " << looking_for << " found...parent avg prod: " << (*curorg)->gnome->production/(*curorg)->gnome->production_count << endl;
+        }
+      }
+        
+      //newrec->ToRec[5] = archive.get_threshold();
+      newrec->ToRec[6] = archive.get_set_size();
+      newrec->ToRec[RECSIZE-2] = new_org->noveltypoint->novelty;
+    }
+    if ( !new_org->noveltypoint->viable && minimal_criteria)
+    {
+      new_org->fitness = SNUM/1000.0;
+      //new_org->novelty = 0.00000001;
+      //reset behavioral characterization
+      new_org->noveltypoint->reset_behavior();
+      cout << "fail" << endl;
+      //  cout << " :( " << endl;
+    }
+    else
+    {
+      // cout << ":)" << new_org->noveltypoint->indiv_number << endl;
+    }
+    //add record of new indivdual to storage
+    //Record.add_new(newrec);
+    indiv_counter++;
+
+    //update fittest list
+    archive.update_fittest(new_org);
+#ifdef DEBUG_OUTPUT
+    cout << "Fitness: " << new_org->fitness << endl;
+    cout << "Novelty: " << new_org->noveltypoint->novelty << endl;
+    cout << "RFit: " << new_org->noveltypoint->fitness << endl;
+#endif
+
+    //Now we reestimate the baby's species' fitness
+    new_org->species->estimate_average();
+
+    //Remove the worst organism
+    //if(rand_repl || fitness_measure ==fitness_rnd)
+    // pop->remove_random();
+    //else
+        
+    pop->remove_worst();
+    /*
+    if(randfloat()<0.99)
+    pop->remove_worst();
+    else 
+    pop->remove_old();
+    */
   }
+
+  //write out run information, archive, and final generation
+  cout << "COMPLETED...";
+  char filename[100];
+  sprintf(filename,"%srecord.dat",output_dir);
+  char fname[100];
+  sprintf(fname,"%srtarchive.dat",output_dir);
+  archive.Serialize(fname);
+  //Record.serialize(filename);
+
+  sprintf(fname,"%sfittest_final",output_dir);
+  archive.serialize_fittest(fname);
+
+  sprintf(fname,"%srtgen_final",output_dir);
+  pop->print_to_file_by_species(fname);
+  delete pop;
+  exit(0);
+  return 0;
+}
 
 #define BIPEDMUTATIONS 200
 #define BDIM 30
-  void evolvability_biped(Organism* org,char* fn,int* di,double* ev,bool recall) {
-    fstream file;
-    file.open(fn,ios::app|ios::out);
-    cout <<"Evolvability..." << endl;
-    // file << "---" <<  " " << org->winner << endl;
-    double points[BIPEDMUTATIONS*BDIM];
-    float minx=-10.0,maxx=10.0,miny=-10.0,maxy=10.0;
-    double ox,oy,fit;
-    int nodes;
-    int connections;
-    data_record rec;
-    for (int i=0; i<BIPEDMUTATIONS; i++) {
-      Genome *new_gene= new Genome(*org->gnome);
-      //new_org->gnome = new Genome(*org->gnome);
+void evolvability_biped(Organism* org,char* fn,int* di,double* ev,bool recall) {
+  fstream file;
+  file.open(fn,ios::app|ios::out);
+  cout <<"Evolvability..." << endl;
+  // file << "---" <<  " " << org->winner << endl;
+  double points[BIPEDMUTATIONS*BDIM];
+  float minx=-10.0,maxx=10.0,miny=-10.0,maxy=10.0;
+  double ox,oy,fit;
+  int nodes;
+  int connections;
+  data_record rec;
+  for (int i=0; i<BIPEDMUTATIONS; i++) {
+    Genome *new_gene= new Genome(*org->gnome);
+    //new_org->gnome = new Genome(*org->gnome);
         
-      if (i!=0) //first copy is clean
-        for (int j=0; j<1; j++) mutate_genome(new_gene);
-      Organism *new_org= new Organism(0.0,new_gene,0);
+    if (i!=0) //first copy is clean
+      for (int j=0; j<1; j++) mutate_genome(new_gene);
+    Organism *new_org= new Organism(0.0,new_gene,0);
 
-      noveltyitem* nov_item = biped_evaluate(new_org,&rec);
-      if (i==0) {
-        fit=nov_item->fitness;
-        nodes=new_org->net->nodecount();
-        connections=new_org->net->linkcount();
-        ox=rec.ToRec[1];
-        oy=rec.ToRec[2];
-      }
-      if(recall)
-      {
-        for(int k=0;k<nov_item->data[0].size();k++)
-          file << nov_item->data[0][k] << " ";
-        file << endl; 
-      }   
-      //file << rec.ToRec[1] << " " << rec.ToRec[2]<< endl;
-      for(int k=0;k<nov_item->data[0].size();k++) {
-        points[i*BDIM+k]=nov_item->data[0][k]/25.0;
-      }
-      /*   
-      points[i*2]=(rec.ToRec[1]-minx)/(maxx-minx);
-      points[i*2+1]=(rec.ToRec[2]-miny)/(maxy-miny);
-      cout << points[i*2] << " " << points[i*2+1] << endl;
-      */
-      delete new_org;
-      delete nov_item;
-      //file << endl;
+    noveltyitem* nov_item = biped_evaluate(new_org,&rec);
+    if (i==0) {
+      fit=nov_item->fitness;
+      nodes=new_org->net->nodecount();
+      connections=new_org->net->linkcount();
+      ox=rec.ToRec[1];
+      oy=rec.ToRec[2];
     }
-    int dist = distinct(points,BIPEDMUTATIONS,BDIM);
-    if (di!=NULL) *di=dist;
-    double evol = 0; //test_indiv(points,BIPEDMUTATIONS);
-    if (ev!=NULL) *ev=evol;
-    if(!recall) {
-      file << dist << " " << evol << " " << ox << " " << oy << " " << nodes << " " <<connections << " " << fit << endl;
-      file.close();
+    if(recall)
+    {
+      for(int k=0;k<nov_item->data[0].size();k++)
+        file << nov_item->data[0][k] << " ";
+      file << endl; 
+    }   
+    //file << rec.ToRec[1] << " " << rec.ToRec[2]<< endl;
+    for(int k=0;k<nov_item->data[0].size();k++) {
+      points[i*BDIM+k]=nov_item->data[0][k]/25.0;
     }
+    /*   
+    points[i*2]=(rec.ToRec[1]-minx)/(maxx-minx);
+    points[i*2+1]=(rec.ToRec[2]-miny)/(maxy-miny);
+    cout << points[i*2] << " " << points[i*2+1] << endl;
+    */
+    delete new_org;
+    delete nov_item;
+    //file << endl;
   }
+  int dist = distinct(points,BIPEDMUTATIONS,BDIM);
+  if (di!=NULL) *di=dist;
+  double evol = 0; //test_indiv(points,BIPEDMUTATIONS);
+  if (ev!=NULL) *ev=evol;
+  if(!recall) {
+    file << dist << " " << evol << " " << ox << " " << oy << " " << nodes << " " <<connections << " " << fit << endl;
+    file.close();
+  }
+}
 
-  Population *biped_alps(char* output_dir, const char *genes, int gens, bool novelty) {
-    population_state* p_state = create_biped_popstate(output_dir,genes,gens,novelty);
+Population *biped_alps(char* output_dir, const char *genes, int gens, bool novelty) {
+  population_state* p_state = create_biped_popstate(output_dir,genes,gens,novelty);
     
-    alps k(5,20,p_state->pop->start_genome,p_state,biped_success_processing,output_dir);
-    k.do_alps();
+  alps k(5,20,p_state->pop->start_genome,p_state,biped_success_processing,output_dir);
+  k.do_alps();
+}
+
+static int maxgens;
+static int push_back_size = 20;
+
+Population *biped_generational(char* outputdir,const char *genes, int gens,bool novelty)
+{
+  char logname[100];
+  sprintf(logname,"%s_log.txt",outputdir);
+  logfile=new ofstream(logname);
+
+  population_state* p_state = create_biped_popstate(outputdir, genes, gens, novelty);
+  for(int gen = 0; gen <= maxgens; gen++)  { //WAS 1000
+    cout << "Generation " << gen << endl;
+    bool win = biped_generational_epoch(p_state,gen);
+    p_state->pop->epoch(gen);
   }
+  delete logfile;
+  return p_state->pop;
 
-  static int maxgens;
-  static int push_back_size = 20;
+}
 
-  Population *biped_generational(char* outputdir,const char *genes, int gens,bool novelty)
-  {
-    char logname[100];
-    sprintf(logname,"%s_log.txt",outputdir);
-    logfile=new ofstream(logname);
+population_state* create_biped_popstate(char* outputdir,const char *genes, int gens,bool novelty) {
+  float archive_thresh=3.0;
 
-    population_state* p_state = create_biped_popstate(outputdir,genes,gens,novelty);
-    for (int gen=0; gen<=maxgens; gen++)  { //WAS 1000
-      cout<<"Generation "<<gen<<endl;
-      bool win = biped_generational_epoch(p_state,gen);
-      p_state->pop->epoch(gen);
-    }
-    delete logfile;
-    return p_state->pop;
+  maxgens=gens;
+  noveltyarchive *archive= new noveltyarchive(archive_thresh,*walker_novelty_metric,true,push_back_size,minimal_criteria,true);
 
-  }
-
-  population_state* create_biped_popstate(char* outputdir,const char *genes, int gens,bool novelty) {
-    float archive_thresh=3.0;
-
-    maxgens=gens;
-    noveltyarchive *archive= new noveltyarchive(archive_thresh,*walker_novelty_metric,true,push_back_size,minimal_criteria,true);
-
-    //if doing multiobjective, turn off speciation, TODO:maybe turn off elitism
+  //if doing multiobjective, turn off speciation, TODO:maybe turn off elitism
     
-    if (NEAT::multiobjective) NEAT::speciation=false;
+  if (NEAT::multiobjective) NEAT::speciation=false;
 
-    Population *pop;
+  Population *pop;
 
-    Genome *start_genome;
-    char curword[20];
-    int id;
-    data_rec Record;
+  Genome *start_genome;
+  char curword[20];
+  int id;
+  data_rec Record;
 
-    ostringstream *fnamebuf;
-    int gen;
+  ostringstream *fnamebuf;
+  int gen;
 
-    ifstream iFile(genes,ios::in);
+  ifstream iFile(genes,ios::in);
 
-    if (outputdir!=NULL) strcpy(output_dir,outputdir);
-    cout<<"START GENERATIONAL BIPED EVOLUTION"<<endl;
+  if (outputdir!=NULL) strcpy(output_dir,outputdir);
+  cout<<"START GENERATIONAL BIPED EVOLUTION"<<endl;
 
-    cout<<"Reading in the start genome"<<endl;
-    //Read in the start Genome
-    iFile>>curword;
-    iFile>>id;
-    cout<<"Reading in Genome id "<<id<<endl;
-    start_genome=new Genome(id,iFile);
-    iFile.close();
+  cout<<"Reading in the start genome"<<endl;
+  //Read in the start Genome
+  iFile>>curword;
+  iFile>>id;
+  cout<<"Reading in Genome id "<<id<<endl;
+  start_genome=new Genome(id,iFile);
+  iFile.close();
 
-    cout<<"Start Genome: "<<start_genome<<endl;
+  cout<<"Start Genome: "<<start_genome<<endl;
 
-    //Spawn the Population
-    cout<<"Spawning Population off Genome"<<endl;
+  //Spawn the Population
+  cout<<"Spawning Population off Genome"<<endl;
 
-    pop=new Population(start_genome,NEAT::pop_size);
+  pop=new Population(start_genome,NEAT::pop_size);
 
-    cout<<"Verifying Spawned Pop"<<endl;
-    pop->verify();
+  cout<<"Verifying Spawned Pop"<<endl;
+  pop->verify();
 
-    //set evaluator
-    pop->set_evaluator(&biped_evaluate);
-    pop->evaluate_all();
-    return new population_state(pop,novelty,archive);
-    //pop->set_compatibility(&behavioral_compatibility);
-  }
-
-  int biped_success_processing(population_state* pstate) {
-    double& best_fitness = pstate->best_fitness;
-    double& best_secondary = pstate->best_secondary;
-
-    vector<Organism*>::iterator curorg;
-    Population* pop = pstate->pop;
-    //Evaluate each organism on a test
-    int indiv_counter=0;
-    for (curorg=(pop->organisms).begin(); curorg!=(pop->organisms).end(); ++curorg) {
-      if ((*curorg)->noveltypoint->fitness > best_fitness)
-      {
-        best_fitness = (*curorg)->noveltypoint->fitness;
-        cout << "NEWBEST: " << best_fitness << endl;
-        char filename[100];
-        sprintf(filename,"%s_winner", output_dir);
-        //(*curorg)->print_to_file(filename);
-      }
-
-      indiv_counter++;
-      if ((*curorg)->noveltypoint->viable && !pstate->mc_met)
-        pstate->mc_met=true;
-      else if (pstate->novelty && !(*curorg)->noveltypoint->viable && minimal_criteria && pstate->mc_met)
-      {
-        destroy_organism((*curorg));
-      }
-
-      if (!pstate->novelty)
-        (*curorg)->fitness = (*curorg)->noveltypoint->fitness;
-    }
-
-    if(logfile!=NULL)
-      (*logfile) << pstate->generation*NEAT::pop_size<< " " << best_fitness << " " << best_secondary << endl;
-    //(*logfile) << best_fitness << " " << best_secondary << endl;
-    return 0;
-  }
-
-  //int biped_generational_epoch(Population **pop2,int generation,data_rec& Record, noveltyarchive& archive, bool novelty) {
-  int biped_generational_epoch(population_state* p, int gen) {
-    generalized_generational_epoch(p,gen,&biped_success_processing); 
-  }
-  /*
-  Population* pop= *pop2;
-  vector<Organism*>::iterator curorg;
-  vector<Species*>::iterator curspecies;
-  static double best_fitness =0.0;
-  static double best_secondary =  -100000.0;
-  static vector<Organism*> measure_pop;
-
-  static bool win=false;
-  static bool firstflag=false;
-  int winnernum;
-  int indiv_counter=0;
-
-  int evolveupdate=100;
-  if (generation==0) pop->evaluate_all();
-  bool speciation=false;
-
-  if(!speciation)
-  if (NEAT::multiobjective) {  //merge and filter population
-  for (curorg=(pop->organisms).begin(); curorg!=(pop->organisms).end(); ++curorg) {
-  measure_pop.push_back(new Organism(*(*curorg),true)); //TODO:maybe make a copy?
-  }
-
-  //evaluate this 'super-population'
-  archive.rank(measure_pop);
-  if (generation!=0) {
-  //chop population down by half (maybe delete orgs that aren't used)
-  int start=measure_pop.size()/2;
-  vector<Organism*>::iterator it;
-  for (it=measure_pop.begin()+start; it!=measure_pop.end(); it++)
-  delete (*it);
-  measure_pop.erase(measure_pop.begin()+(measure_pop.size()/2),measure_pop.end());
-  }
-  //delete old pop, create new pop
-  Genome* sg=pop->start_genome;
-  delete pop;
-  pop=new Population(measure_pop);
-  pop->set_startgenome(sg);
+  //set evaluator
   pop->set_evaluator(&biped_evaluate);
-  *pop2= pop;
-  }
+  pop->evaluate_all();
+  return new population_state(pop,novelty,archive);
+  //pop->set_compatibility(&behavioral_compatibility);
+}
 
-  if (NEAT::evolvabilitytest && generation%evolveupdate==0)
-  {
-  char fn[100];
-  sprintf(fn,"%s_evolvability%d.dat",output_dir,generation/evolveupdate);
-  for (curorg = (pop->organisms).begin(); curorg != pop->organisms.end(); ++curorg) {
-  evolvability_biped(*curorg,fn);
-  }
-  }
+int biped_success_processing(population_state* pstate) {
+  double& best_fitness = pstate->best_fitness;
+  double& best_secondary = pstate->best_secondary;
 
+  vector<Organism*>::iterator curorg;
+  Population* pop = pstate->pop;
   //Evaluate each organism on a test
+  int indiv_counter=0;
   for (curorg=(pop->organisms).begin(); curorg!=(pop->organisms).end(); ++curorg) {
+    if ((*curorg)->noveltypoint->fitness > best_fitness)
+    {
+      best_fitness = (*curorg)->noveltypoint->fitness;
+      cout << "NEWBEST: " << best_fitness << endl;
+      char filename[100];
+      sprintf(filename,"%s_winner", output_dir);
+      //(*curorg)->print_to_file(filename);
+    }
 
-  //newrec->indiv_number=indiv_counter;
-  //data_record* newrec=new data_record();
-  //evaluate individual, get novelty point
-  //(*curorg)->noveltypoint = maze_novelty_map((*curorg),newrec);
-  //(*curorg)->noveltypoint->indiv_number = indiv_counter;
-  //(*curorg)->datarec = newrec;
-  data_record* newrec = (*curorg)->datarec;
+    indiv_counter++;
+    if ((*curorg)->noveltypoint->viable && !pstate->mc_met)
+      pstate->mc_met=true;
+    else if (pstate->novelty && !(*curorg)->noveltypoint->viable && minimal_criteria && pstate->mc_met)
+    {
+      destroy_organism((*curorg));
+    }
 
-  if ((*curorg)->noveltypoint->secondary >best_secondary) {
-  best_secondary=(*curorg)->noveltypoint->secondary;
-  cout << "NEW BEST SEC " << best_secondary << endl;
-
+    if (!pstate->novelty)
+      (*curorg)->fitness = (*curorg)->noveltypoint->fitness;
   }
 
-  if ((*curorg)->noveltypoint->fitness > best_fitness)
-  {
-  best_fitness = (*curorg)->noveltypoint->fitness;
-  cout << "NEW BEST " << best_fitness << endl;
-  }
+  if(logfile!=NULL)
+    (*logfile) << pstate->generation*NEAT::pop_size<< " " << best_fitness << " " << best_secondary << endl;
+  //(*logfile) << best_fitness << " " << best_secondary << endl;
+  return 0;
+}
 
-  //add record of new indivdual to storage
-  //TODO: PUT BACK IN (to fix record.dat...)
-  //Record.add_new(newrec);
-  indiv_counter++;
-  if ( !(*curorg)->noveltypoint->viable && minimal_criteria)
-  {
-  (*curorg)->fitness = SNUM/1000.0;
-  //new_org->novelty = 0.00000001;
-  //reset behavioral characterization
-  (*curorg)->noveltypoint->reset_behavior();
-  //cout << "fail" << endl;
-  // cout << " :( " << endl;
-  }
+//int biped_generational_epoch(Population **pop2,int generation,data_rec& Record, noveltyarchive& archive, bool novelty) {
+int biped_generational_epoch(population_state* p, int gen) {
+  generalized_generational_epoch(p,gen,&biped_success_processing); 
+}
+/*
+Population* pop= *pop2;
+vector<Organism*>::iterator curorg;
+vector<Species*>::iterator curspecies;
+static double best_fitness =0.0;
+static double best_secondary =  -100000.0;
+static vector<Organism*> measure_pop;
 
-  //update fittest list
-  archive.update_fittest(*curorg);
+static bool win=false;
+static bool firstflag=false;
+int winnernum;
+int indiv_counter=0;
 
-  if (!novelty)
-  (*curorg)->fitness = (*curorg)->noveltypoint->fitness;
-  }
+int evolveupdate=100;
+if (generation==0) pop->evaluate_all();
+bool speciation=false;
 
-  //write line to log file
-  cout << "writing line to log" << endl;
-  (*logfile) << generation << " " << best_fitness << " " << best_secondary << endl;
+if(!speciation)
+if (NEAT::multiobjective) {  //merge and filter population
+for (curorg=(pop->organisms).begin(); curorg!=(pop->organisms).end(); ++curorg) {
+measure_pop.push_back(new Organism(*(*curorg),true)); //TODO:maybe make a copy?
+}
 
-  if (novelty)
-  {
+//evaluate this 'super-population'
+archive.rank(measure_pop);
+if (generation!=0) {
+//chop population down by half (maybe delete orgs that aren't used)
+int start=measure_pop.size()/2;
+vector<Organism*>::iterator it;
+for (it=measure_pop.begin()+start; it!=measure_pop.end(); it++)
+delete (*it);
+measure_pop.erase(measure_pop.begin()+(measure_pop.size()/2),measure_pop.end());
+}
+//delete old pop, create new pop
+Genome* sg=pop->start_genome;
+delete pop;
+pop=new Population(measure_pop);
+pop->set_startgenome(sg);
+pop->set_evaluator(&biped_evaluate);
+*pop2= pop;
+}
 
-  //NEED TO CHANGE THESE TO GENERATIONAL EQUIVALENTS...
-  //assign fitness scores based on novelty
-  archive.evaluate_population(pop,true);
-  ///now add to the archive (maybe remove & only add randomly?)
-  archive.evaluate_population(pop,false);
+if (NEAT::evolvabilitytest && generation%evolveupdate==0)
+{
+char fn[100];
+sprintf(fn,"%s_evolvability%d.dat",output_dir,generation/evolveupdate);
+for (curorg = (pop->organisms).begin(); curorg != pop->organisms.end(); ++curorg) {
+evolvability_biped(*curorg,fn);
+}
+}
+
+//Evaluate each organism on a test
+for (curorg=(pop->organisms).begin(); curorg!=(pop->organisms).end(); ++curorg) {
+
+//newrec->indiv_number=indiv_counter;
+//data_record* newrec=new data_record();
+//evaluate individual, get novelty point
+//(*curorg)->noveltypoint = maze_novelty_map((*curorg),newrec);
+//(*curorg)->noveltypoint->indiv_number = indiv_counter;
+//(*curorg)->datarec = newrec;
+data_record* newrec = (*curorg)->datarec;
+
+if ((*curorg)->noveltypoint->secondary >best_secondary) {
+best_secondary=(*curorg)->noveltypoint->secondary;
+cout << "NEW BEST SEC " << best_secondary << endl;
+
+}
+
+if ((*curorg)->noveltypoint->fitness > best_fitness)
+{
+best_fitness = (*curorg)->noveltypoint->fitness;
+cout << "NEW BEST " << best_fitness << endl;
+}
+
+//add record of new indivdual to storage
+//TODO: PUT BACK IN (to fix record.dat...)
+//Record.add_new(newrec);
+indiv_counter++;
+if ( !(*curorg)->noveltypoint->viable && minimal_criteria)
+{
+(*curorg)->fitness = SNUM/1000.0;
+//new_org->novelty = 0.00000001;
+//reset behavioral characterization
+(*curorg)->noveltypoint->reset_behavior();
+//cout << "fail" << endl;
+// cout << " :( " << endl;
+}
+
+//update fittest list
+archive.update_fittest(*curorg);
+
+if (!novelty)
+(*curorg)->fitness = (*curorg)->noveltypoint->fitness;
+}
+
+//write line to log file
+cout << "writing line to log" << endl;
+(*logfile) << generation << " " << best_fitness << " " << best_secondary << endl;
+
+if (novelty)
+{
+
+//NEED TO CHANGE THESE TO GENERATIONAL EQUIVALENTS...
+//assign fitness scores based on novelty
+archive.evaluate_population(pop,true);
+///now add to the archive (maybe remove & only add randomly?)
+archive.evaluate_population(pop,false);
 
 	
-  #ifdef PLOT_ON
-  vector<float> x,y,z;
-  pop->gather_objectives(&x,&y,&z);
-  front_plot.plot_data(x,y,"p","Pareto front");
-  best_fits.push_back(best_fitness);
-  fitness_plot.plot_data(best_fits,"lines","Fitness");
-  #endif
+#ifdef PLOT_ON
+vector<float> x,y,z;
+pop->gather_objectives(&x,&y,&z);
+front_plot.plot_data(x,y,"p","Pareto front");
+best_fits.push_back(best_fitness);
+fitness_plot.plot_data(best_fits,"lines","Fitness");
+#endif
 
-  if (NEAT::multiobjective)
-  archive.rank(pop->organisms);
+if (NEAT::multiobjective)
+archive.rank(pop->organisms);
 
-  pop->print_divtotal();
-  for (curorg=(pop->organisms).begin(); curorg!=(pop->organisms).end(); ++curorg) {
-  if ( !(*curorg)->noveltypoint->viable && minimal_criteria)
-  {
-  (*curorg)->fitness = SNUM/1000.0;
-  //new_org->novelty = 0.00000001;
-  //reset behavioral characterization
-  //cout << "fail" << endl;
-  // cout << " :( " << endl;
-  }
-  }
-  cout << "ARCHIVE SIZE:" << archive.get_set_size() << endl;
-  cout << "THRESHOLD:" << archive.get_threshold() << endl;
-  archive.end_of_gen_steady(pop);
-  //adjust novelty of infeasible individuals
-  }
-
-
-
-  char fn[100];
-  sprintf(fn,"%sdist%d",output_dir,generation);
-  if (NEAT::printdist)
-  pop->print_distribution(fn);
-  //Average and max their fitnesses for dumping to file and snapshot
-  for (curspecies=(pop->species).begin(); curspecies!=(pop->species).end(); ++curspecies) {
-
-  //This experiment control routine issues commands to collect ave
-  //and max fitness, as opposed to having the snapshot do it,
-  //because this allows flexibility in terms of what time
-  //to observe fitnesses at
-
-  (*curspecies)->compute_average_fitness();
-  (*curspecies)->compute_max_fitness();
-  }
-
-  //Take a snapshot of the population, so that it can be
-  //visualized later on
-  //if ((generation%1)==0)
-  //  pop->snapshot();
-
-  //Only print to file every print_every generations
-  // if  (win||
-  //      ((generation%(NEAT::print_every))==0))
-  if (win && !firstflag)
-  {
-  for (curorg=(pop->organisms).begin(); curorg!=(pop->organisms).end(); ++curorg) {
-  if ((*curorg)->winner) {
-  winnernum=((*curorg)->gnome)->genome_id;
-  cout<<"WINNER IS #"<<((*curorg)->gnome)->genome_id<<endl;
-  char filename[100];
-  sprintf(filename,"%s_winner", output_dir);
-  (*curorg)->print_to_file(filename);
-  }
-  }
-  firstflag = true;
-  }
-
-  //writing out stuff
-  if (generation%NEAT::print_every == 0 )
-  {
-  char filename[100];
-  sprintf(filename,"%s_record.dat",output_dir);
-  char fname[100];
-  sprintf(fname,"%s_archive.dat",output_dir);
-  archive.Serialize(fname);
-  //Record.serialize(filename);
-  sprintf(fname,"%sgen_%d",output_dir,generation);
-  pop->print_to_file_by_species(fname);
-  }
-  if(!speciation)
-  if (NEAT::multiobjective) {
-  for (curorg=measure_pop.begin(); curorg!=measure_pop.end(); curorg++) delete (*curorg);
-  //clear the old population
-  measure_pop.clear();
-  if (generation!=maxgens)
-  for (curorg=(pop->organisms).begin(); curorg!=(pop->organisms).end(); ++curorg) {
-  measure_pop.push_back(new Organism(*(*curorg),true));
-  }
-  }
-  //Create the next generation
-
-  pop->epoch(generation);
+pop->print_divtotal();
+for (curorg=(pop->organisms).begin(); curorg!=(pop->organisms).end(); ++curorg) {
+if ( !(*curorg)->noveltypoint->viable && minimal_criteria)
+{
+(*curorg)->fitness = SNUM/1000.0;
+//new_org->novelty = 0.00000001;
+//reset behavioral characterization
+//cout << "fail" << endl;
+// cout << " :( " << endl;
+}
+}
+cout << "ARCHIVE SIZE:" << archive.get_set_size() << endl;
+cout << "THRESHOLD:" << archive.get_threshold() << endl;
+archive.end_of_gen_steady(pop);
+//adjust novelty of infeasible individuals
+}
 
 
-  return win;
-  }
-  */
+
+char fn[100];
+sprintf(fn,"%sdist%d",output_dir,generation);
+if (NEAT::printdist)
+pop->print_distribution(fn);
+//Average and max their fitnesses for dumping to file and snapshot
+for (curspecies=(pop->species).begin(); curspecies!=(pop->species).end(); ++curspecies) {
+
+//This experiment control routine issues commands to collect ave
+//and max fitness, as opposed to having the snapshot do it,
+//because this allows flexibility in terms of what time
+//to observe fitnesses at
+
+(*curspecies)->compute_average_fitness();
+(*curspecies)->compute_max_fitness();
+}
+
+//Take a snapshot of the population, so that it can be
+//visualized later on
+//if ((generation%1)==0)
+//  pop->snapshot();
+
+//Only print to file every print_every generations
+// if  (win||
+//      ((generation%(NEAT::print_every))==0))
+if (win && !firstflag)
+{
+for (curorg=(pop->organisms).begin(); curorg!=(pop->organisms).end(); ++curorg) {
+if ((*curorg)->winner) {
+winnernum=((*curorg)->gnome)->genome_id;
+cout<<"WINNER IS #"<<((*curorg)->gnome)->genome_id<<endl;
+char filename[100];
+sprintf(filename,"%s_winner", output_dir);
+(*curorg)->print_to_file(filename);
+}
+}
+firstflag = true;
+}
+
+//writing out stuff
+if (generation%NEAT::print_every == 0 )
+{
+char filename[100];
+sprintf(filename,"%s_record.dat",output_dir);
+char fname[100];
+sprintf(fname,"%s_archive.dat",output_dir);
+archive.Serialize(fname);
+//Record.serialize(filename);
+sprintf(fname,"%sgen_%d",output_dir,generation);
+pop->print_to_file_by_species(fname);
+}
+if(!speciation)
+if (NEAT::multiobjective) {
+for (curorg=measure_pop.begin(); curorg!=measure_pop.end(); curorg++) delete (*curorg);
+//clear the old population
+measure_pop.clear();
+if (generation!=maxgens)
+for (curorg=(pop->organisms).begin(); curorg!=(pop->organisms).end(); ++curorg) {
+measure_pop.push_back(new Organism(*(*curorg),true));
+}
+}
+//Create the next generation
+
+pop->epoch(generation);
+
+
+return win;
+}
+*/

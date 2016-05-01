@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
   }
   else
   {
-    p = biped_generational(filename,startgenes,generations,noveltySwitch.getValue());
+    p = biped_generational(filename, startgenes, generations, noveltySwitch.getValue());
   }
   //HeapProfilerStop();
 
