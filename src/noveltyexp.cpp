@@ -140,7 +140,6 @@ static int number_of_samples = 1;
 static int simulated_timesteps = 400;
 bool seed_mode = false;
 char seed_name[100]="";
-static char mc_mazes[40]="";
 bool minimal_criteria=false;
 bool evaluate_switch=false;
 static bool goal_attract=true;
@@ -185,11 +184,6 @@ void set_samples(int s)
 void set_timesteps(int s)
 {
   simulated_timesteps=s;
-}
-
-void set_mcmaze(string s)
-{
-  strcpy(mc_mazes,s.c_str());
 }
 
 void set_seed(string s)
@@ -832,67 +826,6 @@ public:
     return new_item;
   }
 
-  void test_ensemble(const char* classname) {
-
-    Population *p;
-
-    char trainfile[200];
-    char testfile[200];
-    char validfile[200];
-   
-    sprintf(trainfile,"%s_train.dat",classname);
-    sprintf(testfile,"%s_test.dat",classname);
-    sprintf(validfile,"%s_valid.dat",classname);
-    classifier_train_data = read_classifier_data(trainfile);
-    classifier_test_data = read_classifier_data(testfile);
-    classifier_valid_data = read_classifier_data(validfile);
-
-    p=new Population(mc_mazes); //"nuke_res/fit_ensemble.dat");
-    p->set_evaluator(&classifier_novelty_map);
-    p->verify();
-    p->evaluate_all();
-    vector<float> ens_results;
-
-    float best_test=0.0;
-    int bestind=0;
- 
-    ofstream fitout("fits.dat");
-    ofstream distout("dists.dat");
- 
-    for(int i=0;i<p->organisms.size();i++) {  
-      float fit=   classify(ens_results,classifier_train_data,p->organisms[i]->gnome->genesis(0));
-      float avgdist=0.0;
-      if (fit>best_test) { bestind=i; best_test=fit; } 
-
- 
-      for(int j=0;j<p->organisms.size();j++) {
-        float d =  maze_novelty_metric(p->organisms[i]->noveltypoint,p->organisms[j]->noveltypoint);
-        distout << d << " "; 
-        avgdist+=d;
-      }
-
-      distout << endl;  
-      fitout << fit << " " << avgdist/p->organisms.size() << endl; 
-    }
-
-    classify(ens_results,classifier_train_data,p->organisms[bestind]->gnome->genesis(0),true);
-
-    cout << endl << "CHAMP TRAIN: " << best_test << endl;
-    cout << "CHAMP TEST: " << classify(ens_results,classifier_test_data,p->organisms[bestind]->gnome->genesis(0)) << endl;
- 
-    vector<Organism*>& orgs=p->organisms;
-    vector<Organism*> ensemble;
-
-    bool ensemble_test=true;
-    if(ensemble_test) {
-      choose_ensemble(classifier_train_data,orgs,ensemble);
-  
-      cout << "ENSEMBLE TRAIN: "  << classify_ensemble(ens_results,classifier_train_data,ensemble,true) << endl;
-
-      cout << "ENSEMBLE TEST:" <<  classify_ensemble(ens_results,classifier_test_data,ensemble,true) << endl;
-
-    }
-  }
   static int maxgens;
 
   population_state* create_classifier_popstate(char* outputdir,const char* classfile,int param,const char *genes, int gens,bool novelty) {

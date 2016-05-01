@@ -22,9 +22,6 @@ int main(int argc, char **argv) {
   // mtrace(); 
   ValueArg<float> grav("","gravity","Gravity setting",false,1.0,"float");
   cmd.add(grav);
-  
-  ValueArg<string> mcmaze("","mcmaze","MC Maze file",false,"mcmaze.txt","string");
-  cmd.add(mcmaze);
 
   ValueArg<string> genes("z","sg","Starter genes",false,"mazestart_orig","string");
   cmd.add(genes);
@@ -159,7 +156,6 @@ int main(int argc, char **argv) {
   }
   set_evaluate(evaluateSwitch.getValue());
   set_extinction(extinction.getValue());
-  set_mcmaze(mcmaze.getValue());
   set_fit_measure(fit_measure.getValue());
   set_nov_measure(nov_measure.getValue());
   set_aoi(area_of_interest.getValue());
