@@ -59,9 +59,6 @@ int main(int argc, char **argv) {
   SwitchArg goal_attract("","goalnotsticky","Goal is not attractor",false);
   cmd.add(goal_attract);
 
-  SwitchArg reachone("","reachone","Enforce reaching one goal",false);
-  cmd.add(reachone);
-
   SwitchArg area_of_interest("","aoi","Enforce pruning of behavior space",false);
   cmd.add(area_of_interest);
   
@@ -153,7 +150,6 @@ int main(int argc, char **argv) {
   set_fit_measure(fit_measure.getValue());
   set_nov_measure(nov_measure.getValue());
   set_aoi(area_of_interest.getValue());
-  set_reach_onepoint(reachone.getValue());
   set_random_replace(remove_random.getValue());
 
   cout << "Num Samples: " << num_samples.getValue() << endl;

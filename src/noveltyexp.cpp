@@ -49,14 +49,12 @@ static novelty_measure_type novelty_measure = novelty_sample;
 
 enum fitness_measure_type { fitness_uniform,fitness_goal, fitness_drift, fitness_std,fitness_rnd,fitness_spin,fitness_changegoal,fitness_collisions,fitness_reachone ,fitness_aoi,fitness_collgoal};
 static fitness_measure_type fitness_measure = fitness_goal;
-static bool mc_reach_onepoint=false;
 bool age_objective=false;
 bool population_dirty=false;
 
 static bool regression=true;
 
 static bool extinction=true;
-bool set_reach_onepoint(bool ro) { mc_reach_onepoint=ro; }
 bool get_age_objective() { return age_objective; }
 void set_age_objective(bool ao) { age_objective=ao; }
 void set_extinction(bool _ext) {
