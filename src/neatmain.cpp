@@ -15,7 +15,6 @@ using namespace std;
 #include "biped.h"
 #include "alps.h"
 using namespace TCLAP;
-static bool biped=false;
 CmdLine cmd("Maze evolution", ' ', "0.1");
 
 int main(int argc, char **argv) {
@@ -50,11 +49,7 @@ int main(int argc, char **argv) {
   
   SwitchArg multiobj_switch("","mo","Multiobjective",false);
   cmd.add(multiobj_switch);
-
-  SwitchArg biped_switch("","biped","Biped domain",false);
-  cmd.add(biped_switch);
  
-
   SwitchArg remove_random("","remrand","Remove random individuak",false);
   cmd.add(remove_random); 
 
@@ -184,8 +179,6 @@ int main(int argc, char **argv) {
 
   cout << "Minimal criteria engaged? " << mcSwitch.getValue() << endl;
   set_minimal_criteria(mcSwitch.getValue());
-
-  if(biped_switch.getValue()) biped=true;
 
   /*
   long long netindex_val=netindex.getValue(); 
