@@ -64,25 +64,7 @@ void set_age_objective(bool ao) { age_objective=ao; }
 void set_extinction(bool _ext) {
   extinction=_ext;
 }
-static Point extinction_point(0.0,0.0);
-static float extinction_radius=50.0;
 static int change_extinction_length=5;
-
-void change_extinction_point() {
-  float minx,maxx,miny,maxy;
-  envList[0]->get_range(minx,miny,maxx,maxy);
-
-  extinction_point.x = randfloat()*(maxx-minx)+minx;
-  extinction_point.y = randfloat()*(maxy-miny)+miny;
-  if (extinction)
-    population_dirty=true;
-}
-bool extinct(Point k) {
-  if (k.distance(extinction_point)<extinction_radius)
-    return true;
-  return false;
-}
-
 
 static int change_goal_length=5;
 
