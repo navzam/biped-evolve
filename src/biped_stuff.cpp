@@ -348,7 +348,7 @@ noveltyitem* biped_evaluate(NEAT::Organism *org,data_record* data)
 
 
 //novelty maze navigation run
-Population *biped_novelty_realtime(char* outputdir,const char* mazefile,int par,const char* genes,bool novelty) {
+Population *biped_novelty_realtime(char* outputdir,int par,const char* genes,bool novelty) {
 
   Population *pop;
   Genome *start_genome;
