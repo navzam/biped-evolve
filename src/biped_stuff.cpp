@@ -522,7 +522,7 @@ int biped_novelty_realtime_loop(Population *pop,bool novelty) {
           mx=(*curorg)->noveltypoint->fitness; b=(*curorg);
         }
       } 
-      cout << "GEN" << offspring_count/NEAT::pop_size << " " << tot << " " << mx <<  endl;
+      cout << "GENERATION " << offspring_count/NEAT::pop_size << ": total = " << tot << ", max = " << mx <<  endl;
 
       //evolvability_biped(b,"dummy");
       char fn[100];
