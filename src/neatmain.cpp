@@ -201,8 +201,8 @@ int main(int argc, char **argv) {
   
   set_constraint_switch(constraintSwitch.getValue());
 
-  p = classifier_generational(filename,mazename,param,startgenes,generations,noveltySwitch.getValue());
-  exit(0);
+  //p = classifier_generational(filename,mazename,param,startgenes,generations,noveltySwitch.getValue());
+  //exit(0);
 
   if(!generationalSwitch.getValue())
   {
