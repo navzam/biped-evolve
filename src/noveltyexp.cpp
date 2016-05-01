@@ -3,7 +3,6 @@
 #include "noveltyset.h"
 
 #include "datarec.h"
-#include "maze.h"
 #include "graph.h"
 
 #include "histogram.h"
@@ -23,12 +22,9 @@
 #include "alps.h"
 //#include "modularity/modularity.hpp"
 
-static Environment* env;
 static vector<vector<float> > classifier_train_data;
 static vector<vector<float> > classifier_valid_data;
 static vector<vector<float> > classifier_test_data;
-static vector<Environment*> envList;
-static vector<Environment*> mcList;
 static ofstream *logfile=NULL;
 
 static vector<float> best_fits;
@@ -269,23 +265,6 @@ float maze_novelty_metric(noveltyitem* x,noveltyitem* y)
     diff+=hist_diff(x->data[k],y->data[k]);
   }
   return diff;
-}
-
-static void read_in_environments(const char* mazefile, vector<Environment*>& envLst)
-{
-  ifstream listfile(mazefile);
-
-  while (!listfile.eof())
-  {
-    string filename;
-    getline(listfile,filename);
-    if (filename.length() == 0)
-      break;
-    cout << "Reading maze: " << filename << endl;
-    Environment* new_env = new Environment(filename.c_str());
-    envLst.push_back(new_env);
-  }
-
 }
 
 #define MAX_NICHES 300000

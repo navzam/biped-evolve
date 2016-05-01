@@ -17,13 +17,10 @@
 #include "genome.h"
 #include "species.h"
 #include "datarec.h"
-#include "maze.h"
 #include "population_state.h"
 
 using namespace std;
 using namespace NEAT;
-
-void test_ensemble(const char* classfile);
 
 void enumerate_behaviors(const char* name,long long parm,const char* outname,int count);
 void mutate_genome(Genome* new_genome,bool traits=false);
@@ -42,7 +39,6 @@ void set_fit_measure(string m);
 
 bool set_no_collision(bool no); 
 bool set_reach_onepoint(bool ro);
-void set_mcmaze(string s);
 void set_minimal_criteria(bool mc);
 void set_samples(int s);
 void set_timesteps(int s);
