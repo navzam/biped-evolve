@@ -25,9 +25,6 @@ using namespace NEAT;
 void enumerate_behaviors(const char* name,long long parm,const char* outname,int count);
 void mutate_genome(Genome* new_genome,bool traits=false);
 
-float contained_dist(float x,float y);
-bool contained(float x,float y);
-
 void set_age_objective(bool ao); 
 void set_evaluate(bool val);
 void set_extinction(bool _ext);
@@ -54,8 +51,6 @@ int classifier_generational_epoch(population_state* pstate,int generation);
 
 int generalized_generational_epoch(population_state* pstate,int generation,successfunc success_processing);
 void destroy_organism(Organism* curorg);
-
-//int maze_generational_epoch(Population **pop,int generation,data_rec& Record,noveltyarchive& archive,bool novelty);
 
 //Walker novelty steady-state 
 noveltyitem* classifier_novelty_map(Organism *org,data_record* record=NULL);
