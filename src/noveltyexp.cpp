@@ -69,24 +69,16 @@ bool seed_mode = false;
 char seed_name[100]="";
 bool minimal_criteria=false;
 bool evaluate_switch=false;
-static bool goal_attract=true;
-
-static bool activity_stats=false;
 
 static bool constraint_switch=false;
-static bool area_of_interest=false;
 static bool rand_repl=false;
+
 void set_evaluate(bool val) {
   evaluate_switch=val;
 }
 void set_random_replace(bool val)
 {
   rand_repl = val;
-}
-
-void set_aoi(bool val)
-{
-  area_of_interest=val;
 }
 
 void  set_constraint_switch(bool val)
@@ -96,11 +88,6 @@ void  set_constraint_switch(bool val)
 void set_minimal_criteria(bool mc)
 {
   minimal_criteria=mc;
-}
-
-void set_goal_attract(bool ga)
-{
-  goal_attract=ga;
 }
 
 void set_samples(int s)

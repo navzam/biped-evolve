@@ -55,12 +55,6 @@ int main(int argc, char **argv) {
 
   SwitchArg alpsmode("","alps","ALPs-type dealie",false);
   cmd.add(alpsmode);
-
-  SwitchArg goal_attract("","goalnotsticky","Goal is not attractor",false);
-  cmd.add(goal_attract);
-
-  SwitchArg area_of_interest("","aoi","Enforce pruning of behavior space",false);
-  cmd.add(area_of_interest);
   
   SwitchArg mo_speciation("","mos","Multiobjective speciation",true);
   cmd.add(mo_speciation);
@@ -149,16 +143,12 @@ int main(int argc, char **argv) {
   set_extinction(extinction.getValue());
   set_fit_measure(fit_measure.getValue());
   set_nov_measure(nov_measure.getValue());
-  set_aoi(area_of_interest.getValue());
   set_random_replace(remove_random.getValue());
 
   cout << "Num Samples: " << num_samples.getValue() << endl;
   set_samples(num_samples.getValue());
 
   set_seed(seed_genome.getValue()); 
-
-  cout << "Goal not sticky? "  << goal_attract.getValue() << endl;
-  set_goal_attract(!goal_attract.getValue());
 
   cout << "Minimal criteria engaged? " << mcSwitch.getValue() << endl;
   set_minimal_criteria(mcSwitch.getValue());

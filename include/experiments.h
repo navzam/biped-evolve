@@ -29,15 +29,13 @@ void set_age_objective(bool ao);
 void set_evaluate(bool val);
 void set_extinction(bool _ext);
 void set_random_replace(bool val);
-void  set_constraint_switch(bool val);
-void set_aoi(bool val);
+void set_constraint_switch(bool val);
 void set_nov_measure(string m);
 void set_fit_measure(string m);
 
 void set_minimal_criteria(bool mc);
 void set_samples(int s);
 void set_seed(string s);
-void set_goal_attract(bool s);
 //generational maze experiments
 typedef int (*successfunc)(population_state* ps);
 typedef int (*epochfunc)(population_state* ps,int generation,successfunc sf);
