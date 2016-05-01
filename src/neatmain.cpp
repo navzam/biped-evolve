@@ -166,14 +166,11 @@ int main(int argc, char **argv) {
 
   if(!generationalSwitch.getValue())
   {
-    cout << "NONGENERATIONAL" << endl;
-    if(!noveltySwitch.getValue())
-      p = biped_novelty_realtime(filename,param,startgenes,false);
-    else
-      p = biped_novelty_realtime(filename,param,startgenes,true);
+    p = biped_novelty_realtime(filename,param,startgenes,noveltySwitch.getValue());
   }
-  else if(alpsmode.getValue()) {
-    biped_alps(filename,startgenes,50,noveltySwitch.getValue());
+  else if(alpsmode.getValue())
+  {
+    p = biped_alps(filename,startgenes,50,noveltySwitch.getValue());
   }
   else
   {
