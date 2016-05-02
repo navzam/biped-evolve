@@ -8,19 +8,6 @@
 
 #define RECSIZE 10
 using namespace std;
-class logger
-{
-public:
-  ofstream *ofile;
-  logger(const char* fn) {
-    ofile= new ofstream(fn);
-  }
-
-  ~logger() {
-    ofile->close();
-    delete ofile;
-  }
-};
 
 class data_record
 {
