@@ -374,7 +374,7 @@ public:
     {
       delete movie;
       delete movie_rot;
-      cout << "terminating.." << endl;
+      //cout << "terminating.." << endl;
     }
     if (movie_play)
     {
