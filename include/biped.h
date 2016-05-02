@@ -527,29 +527,28 @@ public:
     return false;
   }
 
-  void create_leg(dVector3 offset)
+  void create_leg(const dVector3 offset)
   {
-    dVector3 xAxis={1.0,0.0,0.0};
-    dVector3 yAxis={0.0,-1.0,0.0};
-    dVector3 zAxis={0.0,0.0,1.0};
+    dVector3 xAxis = {1.0, 0.0, 0.0};
+    dVector3 yAxis = {0.0, -1.0, 0.0};
+    dVector3 zAxis = {0.0, 0.0, 1.0};
 
-    dVector3 p={offset[0],offset[1],offset[2]};
+    dVector3 p = {offset[0], offset[1], offset[2]};
 
-    dVector3 foot_pos = {p[0],p[1],p[2]+(FOOTZ_SZ/2.0)};
+    dVector3 foot_pos = {p[0], p[1], p[2] + (FOOTZ_SZ / 2.0)};
 
-    int foot=add_sphere(FOOT_DENSITY,FOOTZ_SZ/2.0,foot_pos);
+    int foot = add_sphere(FOOT_DENSITY, FOOTZ_SZ / 2.0, foot_pos);
 
+    dVector3 lower_pos = {p[0], p[1], p[2] + FOOTZ_SZ + LLEG_LEN / 2.0};
+    int lowerleg = add_cylinder(3, DENSITY, LLEG_LEN, LLEG_RAD, lower_pos);
+    dVector3 upper_pos = {p[0], p[1], p[2] + FOOTZ_SZ + LLEG_LEN + ULEG_LEN / 2.0};
+    int upperleg = add_cylinder(3, DENSITY, ULEG_LEN, ULEG_RAD, upper_pos);
 
-    dVector3 lower_pos = {p[0],p[1],p[2]+FOOTZ_SZ+LLEG_LEN/2.0};
-    int lowerleg = add_cylinder(3,DENSITY,LLEG_LEN,LLEG_RAD,lower_pos);
-    dVector3 upper_pos = {p[0],p[1],p[2]+FOOTZ_SZ+LLEG_LEN+ULEG_LEN/2.0};
-    int upperleg = add_cylinder(3,DENSITY,ULEG_LEN,ULEG_RAD,upper_pos);
+    dVector3 foot_joint_a = {p[0], p[1], p[2] + FOOTZ_SZ};
+    dVector3 knee_joint_a = {p[0], p[1], p[2] + FOOTZ_SZ + LLEG_LEN};
 
-    dVector3 foot_joint_a = {p[0],p[1],p[2]+(FOOTZ_SZ)};
-    dVector3 knee_joint_a = {p[0],p[1],p[2]+FOOTZ_SZ+LLEG_LEN};
-
-    add_fixed(foot,lowerleg);
-    add_hinge(lowerleg,upperleg,knee_joint_a,yAxis,-1.4,0.0,MAXTORQUE_KNEE);
+    add_fixed(foot, lowerleg);
+    add_hinge(lowerleg, upperleg, knee_joint_a, yAxis, -1.4, 0.0, MAXTORQUE_KNEE);
   }
 
   virtual void Create(dWorldID worldi, dSpaceID spacei, dVector3 posi,Controller* cont)
