@@ -289,6 +289,11 @@ dReal evaluate_controller(Controller* controller, noveltyitem* ni,  data_record 
     if(log && timestep % 100 == 0)
       cout << creatures[0]->fitness() << endl;
   }
+  const dReal fitness = creatures[0]->fitness();
+  if(creatures[0]->abort())
+    cout << "CREATURE DIED WITH FITNESS " << fitness << endl;
+  else
+    cout << "CREATURE TIMED OUT WITH FITNESS " << fitness << endl;
   
   const int time = timestep;
 
@@ -304,7 +309,6 @@ dReal evaluate_controller(Controller* controller, noveltyitem* ni,  data_record 
     update_behavior(k, creatures[0], true, (float)time / (float)simtime);
   }
 
-  const dReal fitness = creatures[0]->fitness();
   ((Biped*)creatures[0])->lft.push_back(timestep);
   ((Biped*)creatures[0])->rft.push_back(timestep);
   if(ni != NULL)
@@ -337,7 +341,7 @@ noveltyitem* biped_evaluate(NEAT::Organism *org, data_record *data)
   new_item->phenotype = new Network(*org->net);
 
   CTRNNController *cont = new CTRNNController(org->net, org->gnome);
-  new_item->fitness = evaluate_controller(cont, new_item, data);
+  new_item->fitness = evaluate_controller(cont, new_item, data, true);
   org->fitness = new_item->fitness;
   new_item->secondary = 0;
   //if (new_item->fitness < 2.5) new_item->viable=false;
@@ -846,7 +850,8 @@ int biped_success_processing(population_state* pstate) {
     if ((*curorg)->noveltypoint->fitness > best_fitness)
     {
       best_fitness = (*curorg)->noveltypoint->fitness;
-      cout << "NEWBEST: " << best_fitness << endl;
+      cout << "NEW BEST: " << best_fitness << endl;
+      
       char filename[100];
       sprintf(filename,"%s_winner", output_dir);
       //(*curorg)->print_to_file(filename);
