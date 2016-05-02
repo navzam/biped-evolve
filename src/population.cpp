@@ -356,16 +356,16 @@ void Population::print_avg_age() {
   cout << "AvgSIZE:" << mgsize << " "<< avgsize << endl;
 }
 void Population::evaluate_organism(Organism* org) {
-  data_record* newrec=new data_record();
-  //evaluate individual, get novelty point    
-                   
+  data_record *newrec = new data_record();
+  
+  // Evaluate individual; get novelty point       
   if(org->noveltypoint && !org->noveltypoint->added)
     delete org->noveltypoint;
   if(org->datarec)
     delete org->datarec;
-                   
-  org->noveltypoint = evaluator(org,newrec);
-  org->datarec=newrec;
+  
+  org->noveltypoint = evaluator(org, newrec);
+  org->datarec = newrec;
   //(*curorg)->noveltypoint->indiv_number = indiv_counter   
 }
 

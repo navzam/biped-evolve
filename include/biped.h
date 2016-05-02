@@ -44,7 +44,7 @@ int biped_success_processing(population_state* pstate);
 noveltyitem* biped_evaluate(NEAT::Organism* org,data_record* data=NULL);
 dReal evaluate_controller(Controller* controller,noveltyitem* ni=NULL,data_record* record=NULL,bool log=false);
 
-void simulationStep(bool b=false);
+void simulationStep(const bool bMoviePlay = false);
 
 extern vector<dGeomID> geoms;
 extern vector<Creature*> creatures;
@@ -177,32 +177,33 @@ public:
 
   virtual void Update(double timestep)
   {
-    if (movie_rec)
+    // If recording, record positions and rotations
+    if(movie_rec)
     {
-
-      for (int x=0; x<geoms.size(); x++)
+      for(int x = 0; x < geoms.size(); ++x)
       {
         dQuaternion rot;
-        const dReal* pos=dGeomGetPosition(geoms[x]);
-        dGeomGetQuaternion(geoms[x],rot);
+        const dReal *pos = dGeomGetPosition(geoms[x]);
+        dGeomGetQuaternion(geoms[x], rot);
         *movie << pos[0] << " " << pos[1] << " " << pos[2] << " ";
         *movie_rot << rot[0] << " " << rot[1] << " " << rot[2] << " " << rot[3] << " ";
       }
       *movie << endl;
       *movie_rot << endl;
     }
-    if (movie_play)
+    
+    // If playing, set positions and rotations
+    if(movie_play)
     {
-      for (int k=0; k<geoms.size(); k++)
+      for(int k = 0; k < geoms.size(); ++k)
       {
-        dReal x,y,z;
+        dReal x, y, z;
         dQuaternion q;
         *movie_in >> x >> y >> z;
         *movie_rot_in >> q[0] >> q[1] >> q[2] >> q[3];
-        dGeomSetPosition(geoms[k],x,y,z);
-        dGeomSetQuaternion(geoms[k],q);
+        dGeomSetPosition(geoms[k], x, y, z);
+        dGeomSetQuaternion(geoms[k], q);
       }
-
     }
   }
 
@@ -536,10 +537,10 @@ public:
 
   virtual bool abort()
   {
-    const dReal* torsoPos;
-    torsoPos=dBodyGetPosition(bodies[6]);
-    if (torsoPos[2]< 0.5*(ORIG_HEIGHT))
+    const dReal *torsoPos = dBodyGetPosition(bodies[6]);
+    if(torsoPos[2] < 0.5 * (ORIG_HEIGHT))
       return true;
+    
     return false;
   }
 

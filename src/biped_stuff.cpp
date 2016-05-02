@@ -148,42 +148,41 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
   }
 }
 
-//executes one step of simulation
-void simulationStep(bool bMoviePlay)
+// Executes one step of simulation
+void simulationStep(const bool bMoviePlay)
 {
-  double timestep=0.01;
-  if (!bMoviePlay)
+  const double timestep = 0.01;
+  if(!bMoviePlay)
   {
-    dSpaceCollide (space,0,&nearCallback);
-    dWorldStep(world,timestep);
+    dSpaceCollide(space, 0, &nearCallback);
+    dWorldStep(world, timestep);
   }
 
-  for (int x=0; x<creatures.size(); x++)
+  for(int x = 0; x < creatures.size(); ++x)
     creatures[x]->Update(timestep);
 
-  if (!bMoviePlay)
-    dJointGroupEmpty (contactgroup);
-
+  if(!bMoviePlay)
+    dJointGroupEmpty(contactgroup);
 }
 
-void create_world(Controller* controller,bool log,bool bMoviePlay)
+void create_world(Controller *controller, bool log, bool bMoviePlay)
 {
-  // create world
+  // Create world
   dRandSetSeed(10);
   dInitODE();
   creatures.clear();
   world = dWorldCreate();
-  space = dHashSpaceCreate (0);
-  contactgroup = dJointGroupCreate (0);
+  space = dHashSpaceCreate(0);
+  contactgroup = dJointGroupCreate(0);
      
-  //grab gravity settings from world
-  CTRNNController* cc= (CTRNNController*)controller;
-  float discrete =  ((1.0-cc->genes->traits[0]->params[4]) * 4.0)+1.0; 
-  float gravitysetting = -9.8 * (discrete/5.0);
-  float discrete2 =  ((1.0-cc->genes->traits[0]->params[5]) * 4.0)+1.0; 
+  // Grab gravity settings from world
+  CTRNNController *cc= (CTRNNController*)controller;
+  const float discrete = ((1.0 - cc->genes->traits[0]->params[4]) * 4.0) + 1.0; 
+  float gravitysetting = -9.8 * (discrete / 5.0);
+  const float discrete2 = ((1.0 - cc->genes->traits[0]->params[5]) * 4.0) + 1.0; 
   //cout << "gravity: " << gravitysetting << endl;
   gravitysetting=-9.8;
-  P_CONSTANT=9;
+  P_CONSTANT = 9;
 
   /*
   gravitysetting= -9.8 * NEAT::gravity;
@@ -192,39 +191,41 @@ void create_world(Controller* controller,bool log,bool bMoviePlay)
   MAXTORQUE_KNEE= 2.5+2.5* NEAT::gravity; //5.0;
   MAXTORQUE_HIPMINOR= 2.5+2.5*NEAT::gravity; //5.0;
   MAXTORQUE_HIPMAJOR= 2.5+2.5*NEAT::gravity; //5.0;
-  */ 
-  dWorldSetGravity (world,0,0,gravitysetting);
+  */
+  
+  dWorldSetGravity(world, 0, 0, gravitysetting);
     
-  floorplane = dCreatePlane (space,0,0,1, 0.0);
-  dWorldSetERP(world,0.1);
-  dWorldSetCFM(world,1E-4);
+  floorplane = dCreatePlane(space, 0, 0, 1, 0.0);
+  dWorldSetERP(world, 0.1);
+  dWorldSetCFM(world, 1E-4);
 
-  Biped* biped = new Biped(log,bMoviePlay);
-  dVector3 pos={0.0,0.0,0.0};
+  Biped *biped = new Biped(log, bMoviePlay);
+  dVector3 pos = {0.0, 0.0, 0.0};
 
-  biped->Create(world,space,pos,controller);
+  biped->Create(world, space, pos, controller);
   creatures.push_back(biped);
 }
 
 void destroy_world()
 {
-  dJointGroupEmpty (contactgroup);
-  dJointGroupDestroy (contactgroup);
+  dJointGroupEmpty(contactgroup);
+  dJointGroupDestroy(contactgroup);
 
-  for (int x=0; x<geoms.size(); x++)
+  for(int x = 0; x < geoms.size(); ++x)
     dGeomDestroy(geoms[x]);
 
-  for (int x=0; x<creatures.size(); x++)
+  for(int x = 0; x < creatures.size(); ++x)
   {
     creatures[x]->Destroy();
     delete creatures[x];
   }
+  
   creatures.clear();
   bodies.clear();
   geoms.clear();
 
-  dSpaceDestroy (space);
-  dWorldDestroy (world);
+  dSpaceDestroy(space);
+  dWorldDestroy(world);
   dCloseODE();
 }
 
@@ -267,79 +268,85 @@ void update_behavior(vector<float> &k, Creature* c,bool good=true,float time=0.0
   }
 }
 
-dReal evaluate_controller(Controller* controller,noveltyitem* ni,data_record* record,bool log)
+dReal evaluate_controller(Controller* controller, noveltyitem* ni,  data_record *record, bool log)
 {
+  // Create the ODE world
+  create_world(controller, log);
+  
+  // Simulate until robot falls (or 15 seconds passes)
   vector<float> k;
-  dReal fitness;
-  int timestep=0;
-  const int simtime=1500;
-  create_world(controller,log);
-  while (!creatures[0]->abort() && timestep<simtime)
+  int timestep = 0;
+  const int simtime = 1500;
+  while(!creatures[0]->abort() && timestep < simtime)
   {
     simulationStep();
-    timestep++;
-    if (timestep%100 == 0 && novelty_function % 2 == 1)
+    ++timestep;
+    if(timestep % 100 == 0 && novelty_function % 2 == 1)
     {
-      update_behavior(k,creatures[0]);
+      update_behavior(k, creatures[0]);
     }
-    if (log && timestep%100==0)
+    
+    if(log && timestep % 100 == 0)
       cout << creatures[0]->fitness() << endl;
   }
-  int time=timestep;
+  
+  const int time = timestep;
 
   //for (int x=timestep+1; x<=simtime; x++)
   //    if (x%100==0)
-  if(novelty_function%2==1)
+  if(novelty_function % 2 == 1)
   {
-    while (k.size()< (simtime/100*2))
-      update_behavior(k,creatures[0]);
+    while(k.size() < (simtime/100 * 2))
+      update_behavior(k, creatures[0]);
   }
-  else {
-    update_behavior(k,creatures[0],true,(float)time/(float)simtime);
+  else
+  {
+    update_behavior(k, creatures[0], true, (float)time / (float)simtime);
   }
 
-  fitness=creatures[0]->fitness();
+  const dReal fitness = creatures[0]->fitness();
   ((Biped*)creatures[0])->lft.push_back(timestep);
   ((Biped*)creatures[0])->rft.push_back(timestep);
-  if (ni!=NULL)
+  if(ni != NULL)
   {
     //ni->time=time;
     ni->novelty_scale = 1.0;
     ni->data.push_back(k);
   }
 
-  if (record!=NULL)
+  if(record != NULL)
   {
     dVector3 com;
     creatures[0]->CenterOfMass(com);
-    record->ToRec[0]=fitness;
-    record->ToRec[1]=com[0];
-    record->ToRec[2]=com[1];
-    record->ToRec[3]=com[2];
-    record->ToRec[4]=timestep;
+    record->ToRec[0] = fitness;
+    record->ToRec[1] = com[0];
+    record->ToRec[2] = com[1];
+    record->ToRec[3] = com[2];
+    record->ToRec[4] = timestep;
   }
 
   destroy_world();
+  
   return fitness;
 }
 
-noveltyitem* biped_evaluate(NEAT::Organism *org,data_record* data)
+noveltyitem* biped_evaluate(NEAT::Organism *org, data_record *data)
 {
   noveltyitem *new_item = new noveltyitem;
-  new_item->genotype=new Genome(*org->gnome);
-  new_item->phenotype=new Network(*org->net);
+  new_item->genotype = new Genome(*org->gnome);
+  new_item->phenotype = new Network(*org->net);
 
-  CTRNNController* cont = new CTRNNController(org->net,org->gnome);
-  new_item->fitness=evaluate_controller(cont,new_item,data);
-  org->fitness=new_item->fitness;
+  CTRNNController *cont = new CTRNNController(org->net, org->gnome);
+  new_item->fitness = evaluate_controller(cont, new_item, data);
+  org->fitness = new_item->fitness;
   new_item->secondary = 0;
   //if (new_item->fitness < 2.5) new_item->viable=false;
   //else new_item->viable=true;
-  new_item->viable=true;
+  new_item->viable = true;
   if(get_age_objective())	
-    new_item->secondary=-org->age; //time; //fitness;
+    new_item->secondary = -org->age; //time; //fitness;
   else
-    new_item->secondary=0; //time; //fitness;
+    new_item->secondary = 0; //time; //fitness;
 
   delete cont;
 
@@ -769,7 +776,7 @@ Population *biped_generational(char* outputdir,const char *genes, int gens,bool 
   population_state* p_state = create_biped_popstate(outputdir, genes, gens, novelty);
   for(int gen = 0; gen <= maxgens; gen++)  { //WAS 1000
     cout << "Generation " << gen << endl;
-    bool win = biped_generational_epoch(p_state,gen);
+    const bool win = biped_generational_epoch(p_state,gen);
     p_state->pop->epoch(gen);
   }
   delete logfile;
@@ -777,53 +784,53 @@ Population *biped_generational(char* outputdir,const char *genes, int gens,bool 
 
 }
 
-population_state* create_biped_popstate(char* outputdir,const char *genes, int gens,bool novelty) {
-  float archive_thresh=3.0;
+population_state* create_biped_popstate(char* outputdir, const char *genes, int gens, bool novelty) {
+  maxgens = gens;
+  
+  const float archive_thresh = 3.0;
+  noveltyarchive *archive = new noveltyarchive(archive_thresh, *walker_novelty_metric, true, push_back_size, minimal_criteria, true);
 
-  maxgens=gens;
-  noveltyarchive *archive= new noveltyarchive(archive_thresh,*walker_novelty_metric,true,push_back_size,minimal_criteria,true);
+  // If doing multiobjective, turn off speciation
+  // TODO: Maybe turn off elitism
+  if (NEAT::multiobjective)
+    NEAT::speciation=false;
 
-  //if doing multiobjective, turn off speciation, TODO:maybe turn off elitism
-    
-  if (NEAT::multiobjective) NEAT::speciation=false;
-
-  Population *pop;
-
-  Genome *start_genome;
-  char curword[20];
-  int id;
   data_rec Record;
 
-  ostringstream *fnamebuf;
-  int gen;
-
-  ifstream iFile(genes,ios::in);
-
-  if (outputdir!=NULL) strcpy(output_dir,outputdir);
-  cout<<"START GENERATIONAL BIPED EVOLUTION"<<endl;
-
-  cout<<"Reading in the start genome"<<endl;
-  //Read in the start Genome
-  iFile>>curword;
-  iFile>>id;
-  cout<<"Reading in Genome id "<<id<<endl;
-  start_genome=new Genome(id,iFile);
+  if(outputdir != NULL)
+    strcpy(output_dir, outputdir);
+  
+  // Read in the start Genome
+  cout << "Reading in the start genome..." << endl;
+  char curword[20];
+  int id;
+  ifstream iFile(genes, ios::in);
+  iFile >> curword;
+  iFile >> id;
+  cout << "Reading in genome with id " << id << "..." << endl;
+  Genome *start_genome = new Genome(id, iFile);
   iFile.close();
+  cout << "Read genome" << endl;
+  
+  // Output start genome
+  cout<<"Start Genome: " << start_genome << endl;
 
-  cout<<"Start Genome: "<<start_genome<<endl;
+  // Spawn the Population
+  cout << "Spawning population from genome..." << endl;
+  Population *pop = new Population(start_genome,NEAT::pop_size);
+  cout << "Spawned population" << endl;
 
-  //Spawn the Population
-  cout<<"Spawning Population off Genome"<<endl;
-
-  pop=new Population(start_genome,NEAT::pop_size);
-
-  cout<<"Verifying Spawned Pop"<<endl;
+  cout << "Verifying spawned population..." << endl;
   pop->verify();
+  cout << "Verified spawned population" << endl;
 
-  //set evaluator
+  // Set evaluator and evaluate initial population
+  cout << "Evaluating initial population..." << endl;
   pop->set_evaluator(&biped_evaluate);
   pop->evaluate_all();
-  return new population_state(pop,novelty,archive);
+  cout << "Evaluated initial population" << endl;
+  
+  return new population_state(pop, novelty, archive);
   //pop->set_compatibility(&behavioral_compatibility);
 }
 
