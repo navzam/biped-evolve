@@ -852,8 +852,8 @@ int biped_success_processing(population_state* pstate) {
       best_fitness = (*curorg)->noveltypoint->fitness;
       cout << "NEW BEST: " << best_fitness << endl;
       
-      char filename[100];
-      sprintf(filename,"%s_winner", output_dir);
+      //char filename[100];
+      //sprintf(filename,"%s_winner", output_dir);
       //(*curorg)->print_to_file(filename);
     }
 
