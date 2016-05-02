@@ -307,23 +307,6 @@ public:
     joints.push_back(tempjoint);
     return joints.size()-1;
   }
-  int add_box(dReal density, dReal lx, dReal ly, dReal lz, const dVector3 p)
-  {
-    dBodyID tempbody;
-    dGeomID tempgeom;
-    dMass m;
-    tempbody = dBodyCreate (world);
-    dMassSetBoxTotal(&m,density,lx,ly,lz);
-    tempgeom = dCreateBox(0,lx,ly,lz);
-    dGeomSetBody(tempgeom,tempbody);
-    dBodySetPosition(tempbody,pos[0]+p[0],pos[1]+p[1],pos[2]+p[2]);
-    dSpaceAdd(space,tempgeom);
-
-    bodies.push_back(tempbody);
-    geoms.push_back(tempgeom);
-    onground.push_back(false);
-    return bodies.size()-1;
-  }
 
   int add_sphere(dReal density, dReal radius, const dVector3 p)
   {
