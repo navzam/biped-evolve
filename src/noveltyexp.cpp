@@ -673,11 +673,9 @@ float maze_novelty_metric(noveltyitem* x,noveltyitem* y)
     vector<Species*>::iterator curspecies;
     vector<Organism*>& measure_pop=pstate->measure_pop;
     
-    cout << "#GENOMES:" << Genome::increment_count(0) << endl;
-    cout << "#GENES:" << Gene::increment_count(0) << endl;
-    cout << "ARCHIVESIZE: " << archive.get_set_size() << endl;
-
-    int evolveupdate=100;
+    cout << "Number of genomes: " << Genome::increment_count(0) << endl;
+    cout << "Number of genes: " << Gene::increment_count(0) << endl;
+    cout << "Archive size: " << archive.get_set_size() << endl;
 
     if (NEAT::multiobjective) {  //merge and filter population	
       if(!novelty) NEAT::fitness_multiobjective=true;
@@ -715,7 +713,7 @@ float maze_novelty_metric(noveltyitem* x,noveltyitem* y)
       std::cout << "evol test still used...!!!!!!" << std::endl;
 
     int ret = success_processing(pstate);
-    if(ret!=0)
+    if(ret != 0)
       return 1;
 
     if (novelty)
@@ -806,18 +804,21 @@ float maze_novelty_metric(noveltyitem* x,noveltyitem* y)
     }
 #endif
 
- 
-    char fn[100];
-    sprintf(fn,"%sdist%d",output_dir,generation);
+    // Print distribution (if enabled)
     if (NEAT::printdist)
+    {
+      char fn[100];
+      sprintf(fn,"%sdist%d",output_dir,generation);
       pop->print_distribution(fn);
+    }
     
+    // For every species, ompute average and max fitnesses
     for (curspecies=(pop->species).begin(); curspecies!=(pop->species).end(); ++curspecies) {
       (*curspecies)->compute_average_fitness();
       (*curspecies)->compute_max_fitness();
     }
 
-    //writing out stuff
+    // Write out stuff after a chunk of generations
     if ((generation+1)%NEAT::print_every == 0 )
     {
       char filename[100];
@@ -842,7 +843,7 @@ float maze_novelty_metric(noveltyitem* x,noveltyitem* y)
       }
     }
 
-    //Create the next generation
+    // Print average size and age
     pop->print_avg_age();
 
     return 0;
