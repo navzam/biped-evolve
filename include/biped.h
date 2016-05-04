@@ -508,7 +508,7 @@ public:
       delta*=delta;
       fitness+=delta;
     }
-    //fitness=sqrt(fitness);
+    fitness=sqrt(fitness);
     return fitness;
   }
 
