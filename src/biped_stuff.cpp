@@ -286,14 +286,14 @@ dReal evaluate_controller(Controller* controller, noveltyitem* ni,  data_record 
       update_behavior(k, creatures[0]);
     }
     
-    if(log && timestep % 100 == 0)
-      cout << creatures[0]->fitness() << endl;
+    /*if(log && timestep % 100 == 0)
+      cout << creatures[0]->fitness() << endl;*/
   }
   const dReal fitness = creatures[0]->fitness();
-  if(creatures[0]->abort())
+  /*if(creatures[0]->abort())
     cout << "CREATURE DIED WITH FITNESS " << fitness << endl;
   else
-    cout << "CREATURE TIMED OUT WITH FITNESS " << fitness << endl;
+    cout << "CREATURE TIMED OUT WITH FITNESS " << fitness << endl;*/
   
   const int time = timestep;
 
@@ -780,8 +780,35 @@ Population *biped_generational(char* outputdir,const char *genes, int gens,bool 
   population_state* p_state = create_biped_popstate(outputdir, genes, gens, novelty);
   for(int gen = 0; gen <= maxgens; gen++)  { //WAS 1000
     cout << "Generation " << gen << endl;
+    cout << "Population size: " << p_state->pop->organisms.size() << endl;
     const bool win = biped_generational_epoch(p_state,gen);
     p_state->pop->epoch(gen);
+    
+    // Calculate generation's fitness stats
+    double totalFitness = 0.0;
+    double bestFitness = 0.0;
+    int bestFitnessIndex = -1;
+    for(int i = 0; i < p_state->pop->organisms.size(); ++i)
+    {
+      const Organism *const org = p_state->pop->organisms[i];
+      if(org->fitness > bestFitness)
+      {
+        bestFitness = org->fitness;
+        bestFitnessIndex = i;
+      }
+      //bestFitness = std::max(bestFitness, org->fitness);
+      totalFitness += org->fitness;
+    }
+    const double avgFitness = totalFitness / p_state->pop->organisms.size();
+    
+    // Log to console
+    cout << "Best fitness (all gens): " << p_state->best_fitness << endl;
+    cout << "Best fitness (this gen): " << bestFitness << endl;
+    cout << "Average fitness: " << avgFitness << endl;
+    cout << endl << endl;
+    
+    // Log to file: generation number, population size, best fitness, average fitness
+    *logfile << gen << " " << p_state->pop->organisms.size() << " " << p_state->best_fitness << " " << avgFitness << endl;
   }
   delete logfile;
   return p_state->pop;
@@ -869,8 +896,8 @@ int biped_success_processing(population_state* pstate) {
       (*curorg)->fitness = (*curorg)->noveltypoint->fitness;
   }
 
-  if(logfile!=NULL)
-    (*logfile) << pstate->generation*NEAT::pop_size<< " " << best_fitness << " " << best_secondary << endl;
+  //if(logfile!=NULL)
+    //(*logfile) << pstate->generation*NEAT::pop_size<< " " << best_fitness << " " << best_secondary << endl;
   //(*logfile) << best_fitness << " " << best_secondary << endl;
   return 0;
 }
