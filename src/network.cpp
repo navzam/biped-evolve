@@ -715,31 +715,34 @@ bool Network::is_recur(NNode *potin_node,NNode *potout_node,int &count,int thres
   }
 }
 
-bool Network::is_recur2(NNode *potin_node,NNode *potout_node,int &count, int thresh) {
-  NNode* curnode;
+bool Network::is_recur2(NNode *potin_node,NNode *potout_node) {
+  // Start at out node, if we find a path that lands at in_node, then this link will be recurrent
   std::vector<NNode*> seenlist;  //List of nodes not to doublecount
-  curnode=potin_node; //start at out node, if we find a path that lands at in_node, then this link will be recurrent
-  seenlist.push_back(curnode);
-  return is_rec_helper(curnode,potout_node,seenlist);
+  seenlist.push_back(potin_node);
+  return is_rec_helper(potin_node, potout_node, seenlist);
 }
 
-bool Network::is_rec_helper(NNode* curnode, NNode* find_node,std::vector<NNode*> &seenlist)
-{
-  std::vector<Link*> innodes=curnode->incoming;
-  std::vector<Link*>::iterator curlink;
-  std::vector<NNode*>::iterator location;
-  if (!((curnode->type)==SENSOR)) {
-    for(curlink=innodes.begin();curlink!=innodes.end();++curlink) {
-      if((*curlink)->in_node==find_node)
+bool Network::is_rec_helper(NNode *curnode, NNode* find_node, std::vector<NNode*> &seenlist)
+{ 
+  if(curnode->type == SENSOR)
+    return false;
+  
+  // Loop through incoming nodes
+  std::vector<Link*> innodes = curnode->incoming;
+  for(auto curlink = innodes.begin(); curlink != innodes.end(); ++curlink) {
+    // Did we find what we're looking for?
+    if((*curlink)->in_node == find_node)
+      return true;
+    
+    // If we haven't seen this node, mark it and recurse
+    auto location = std::find(seenlist.begin(), seenlist.end(), ((*curlink)->in_node));
+    if(location == seenlist.end()) {
+      seenlist.push_back((*curlink)->in_node);
+      if(is_rec_helper((*curlink)->in_node, find_node, seenlist))
         return true;
-      location= std::find(seenlist.begin(),seenlist.end(),((*curlink)->in_node));
-      if (location==seenlist.end()) {
-        seenlist.push_back((*curlink)->in_node);
-        if(is_rec_helper((*curlink)->in_node,find_node,seenlist))
-          return true;
-      }
     }
   }
+  
   return false;
 }
 
